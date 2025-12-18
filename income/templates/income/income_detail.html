@@ -1,0 +1,13 @@
+{% extends 'expenses/base.html' %}
+
+{% block title %}<h1>Details</h1>{% endblock %}
+
+{% block content %}
+  <h1>{{ income.amount }}</h1>
+  <p>Account: {{ income.account }}</p>
+  <p>Source: {{ income.source }}</p>
+  <p>Created: {{ income.created }}</p>
+  <a href="{% url 'income:income_edit' pk=income.pk %}">Edit</a>
+  <a href="{% url 'income:income_delete' pk=income.pk %}">Delete</a>
+  <a href="{% url 'income:income_list' %}">Back to list</a>
+{% endblock %}

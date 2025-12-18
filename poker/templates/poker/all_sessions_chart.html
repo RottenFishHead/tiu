@@ -1,0 +1,19 @@
+{% extends 'poker/base.html' %}
+
+
+
+{% block content %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<h1>Win Loss Chart</h1>
+    
+<!-- Include the chart using Plotly JSON -->
+<div id="winLossChart"></div>
+<script>
+    // Parse the Plotly JSON data
+    var chartData = {{ chart_json|safe }};
+
+    // Display the chart
+    Plotly.newPlot('winLossChart', chartData.data, chartData.layout);
+</script>
+
+{% endblock content %}

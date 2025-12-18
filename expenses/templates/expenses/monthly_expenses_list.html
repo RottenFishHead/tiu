@@ -1,0 +1,38 @@
+{% extends 'expenses/base.html' %}  {# Assuming you have a base.html file for your base template #}
+
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-5">Monthly Expenses for {{month_name }}</h1>
+    <p class="font-italic">Total Expenses for the Month: ${{ total_expenses }}</p>
+    {% for category in category_list %}
+        <div class="mt-3">
+            <h2>{{ category.category__name }}</h2>
+            <p class="font-italic">Total Expenses for {{ category.category__name }}: ${{ category.total }}</p>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Name</th>
+                        <th>Amount</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                  
+                    {% for expense in category.expenses %}
+                            <tr>
+                                <td>{{ expense.user }}</td>
+                                <td>{{ expense.name }}</td>
+                                <td>{{ expense.amount }}</td>
+                                <td>{{ expense.created }}</td>
+                            </tr>
+                      
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

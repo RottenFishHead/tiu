@@ -1,0 +1,11 @@
+{% extends 'poker/base.html' %}  <!-- Assuming you have a base template -->
+
+{% block content %}
+  <h2>Edit Poker Session</h2>
+  <form method="post" action="{% url 'poker:edit_session' session.id %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save changes</button>
+  </form>
+  <a href="{% url 'poker:session_detail' session.id %}">Back to Session Detail</a>
+{% endblock %}

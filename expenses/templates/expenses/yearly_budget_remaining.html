@@ -1,0 +1,29 @@
+{% extends 'expenses/base.html' %}  {# Assuming you have a base.html file for your base template #}
+{% block content %}
+
+<div class="container mt-5">
+    <h2>Yearly Budget Remaining - ${{ budget_remaining.0.remaining_budget }}</h2>
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Total Budget</th>
+                <th>Total Expenses</th>
+                <th>Remaining Budget</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in budget_remaining %}
+                <tr>
+                    <td>{{ item.category_name }}</td>
+                    <td>${{ item.total_budget }}</td>
+                    <td>${{ item.total_expenses }}</td>
+                    <td style="color: {% if item.remaining_budget < 0 %}red{% endif %}">
+                        ${{ item.remaining_budget }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

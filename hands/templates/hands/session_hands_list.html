@@ -1,0 +1,35 @@
+{% extends 'poker/base.html' %}
+
+
+
+{% block content %}
+
+<style>
+  .win { color: green; 
+  }
+  .loss { color: red; 
+  }
+</style>
+  <h2>Hands for Session {{ session.id }} on {{ session.created }}</h2>
+  <p><b>Win/Loss:</b> {% if session.win_loss > 0 %}
+    <span class="win">+${{ session.win_loss }}</span>
+{% elif session.win_loss < 0 %}
+    <span class="loss">${{ session.win_loss }}</span>
+{% else %}
+    ${{ session.win_loss }}
+{% endif %}
+
+  {% if hands %}
+    <ul>
+      {% for hand in hands %}
+        <li>
+          <!-- Display hand information here -->
+          <a href="{% url 'hands:hand_detail' hand.id %}">Hand #{{ hand.id }}</a> -- {{ hand.get_hero_card_1_display }} {{ hand.get_hero_card_2_display }}
+          <!-- Add more fields as needed -->
+        </li>
+        {% endfor %}
+    </ul>
+  {% else %}
+    <p>No hands available for this session.</p>
+  {% endif %}
+{% endblock %}

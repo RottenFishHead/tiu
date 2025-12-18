@@ -1,0 +1,19 @@
+{% extends 'expenses/base.html' %}
+
+<html>
+<head>
+    {% block title %} <title>{% if expense %}Update Expense{% else %}Create Expense{% endif %}</title>{% endblock %}
+</head>
+<body>
+    {% block content %}
+    <h1>{% if expense %}Update Expense{% else %}Create Expense{% endif %}</h1>
+    <form method="post" action="{% if expense %}{% url 'expenses:expense-update' expense.id %}{% else %}{% url 'expenses:expense-create' %}{% endif %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">{% if expense %}Update{% else %}Create{% endif %} Expense</button>
+    </form>
+    <br>
+    <a href="{% url 'expenses:expense-list' %}">Back to Expense List</a>
+    {% endblock %}
+</body>
+</html>

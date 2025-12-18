@@ -1,0 +1,10 @@
+{% extends 'poker/base.html' %}
+
+{% block content %}
+  <h2>Add a Poker Session</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save Session</button>
+  </form>
+{% endblock %}

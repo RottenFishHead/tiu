@@ -1,0 +1,53 @@
+{% extends 'poker/base.html' %}
+{% block content %}
+
+    <div class="container mt-4">
+        <h1>Session List by Month</h1>
+
+        <form method="get" action="{% url 'poker:session_list_by_month' %}">
+            <label for="stakes">Filter by Stakes:</label>
+            <select name="stakes" id="stakes">
+                <option value="" {% if not stakes_filter %}selected{% endif %}>All</option>
+                <option value="12" {% if stakes_filter == '12' %}selected{% endif %}>1/2</option>
+                <option value="13" {% if stakes_filter == '13' %}selected{% endif %}>1/3</option>
+                <option value="25" {% if stakes_filter == '25' %}selected{% endif %}>2/5</option>
+                <!-- Add more options as needed -->
+            </select>
+            <button type="submit">Apply Filter</button>
+        </form>
+
+        <table class="table table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Month</th>
+                    <th>Total</th>
+                    <th>Hours</th>
+                    <th>Rate</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in sessions_by_month %}
+                    <tr>
+                        <td>{{ session.month|date:"F Y" }}</td>
+                        <td>$<span class="{% if session.total_profit > 0 %}text-success{% elif session.total_profit < 0 %}text-danger{% endif %}">{{ session.total_profit|floatformat:2 }}</span></td>
+                        <td>{{ session.total_hours }}</td>
+                        <td>
+                            {% if session.total_hours %}
+                               <span class="{% if session.win_rate_per_hour > 0%}text-success{% elif session.win_rate_per_hour < 0 %}text-danger {% endif %}"> ${{ session.win_rate_per_hour|floatformat:2 }}</span>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'poker:session_detail_by_month' year=session.month|date:"Y" month=session.month|date:"m" %}">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% endblock content %}

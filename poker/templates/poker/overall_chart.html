@@ -1,0 +1,17 @@
+{% extends 'poker/base.html' %}
+{% load crispy_forms_tags %}
+
+
+
+{% block content %}
+
+<form method="GET" action="{% url 'poker:overall_chart' %}">
+
+    {{ form|crispy }}
+
+    <button class='m-2'>Submit</button><a href="{% url 'poker:overall_chart' %}">Reset</a>
+
+{{ chart|safe }}
+
+
+{% endblock content %}

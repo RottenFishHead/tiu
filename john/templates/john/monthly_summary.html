@@ -1,0 +1,295 @@
+{% extends "john/base.html" %}
+
+{% block title %}Summary – John{% endblock %}
+
+{% block page_header %}
+  <h1 class="mb-1">Summary</h1>
+  <p class="mb-0">
+    Overview of bills, hours, and mileage for
+    <strong>{{ period_label }}</strong>.
+  </p>
+{% endblock %}
+
+{% block content %}
+
+  <!-- Filters -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3 align-items-end">
+        <!-- Summary type -->
+        <div class="col-12 col-md-4">
+          <label class="form-label d-block">Summary Type</label>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input"
+                   type="radio"
+                   name="type"
+                   id="type-month"
+                   value="month"
+                   {% if summary_type != "week" %}checked{% endif %}>
+            <label class="form-check-label" for="type-month">
+              Monthly
+            </label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input"
+                   type="radio"
+                   name="type"
+                   id="type-week"
+                   value="week"
+                   {% if summary_type == "week" %}checked{% endif %}>
+            <label class="form-check-label" for="type-week">
+              Weekly
+            </label>
+          </div>
+        </div>
+
+        <!-- Monthly controls -->
+        <div class="col-6 col-md-3">
+          <label for="year-input" class="form-label">Year (for monthly)</label>
+          <input type="number"
+                 class="form-control"
+                 id="year-input"
+                 name="year"
+                 value="{{ selected_year|default:today.year }}"
+                 min="2000" max="2100">
+        </div>
+        <div class="col-6 col-md-3">
+          <label for="month-select" class="form-label">Month</label>
+          <select name="month" id="month-select" class="form-select">
+            <option value="">-- Select --</option>
+            <option value="1"  {% if selected_month == 1 %}selected{% endif %}>January</option>
+            <option value="2"  {% if selected_month == 2 %}selected{% endif %}>February</option>
+            <option value="3"  {% if selected_month == 3 %}selected{% endif %}>March</option>
+            <option value="4"  {% if selected_month == 4 %}selected{% endif %}>April</option>
+            <option value="5"  {% if selected_month == 5 %}selected{% endif %}>May</option>
+            <option value="6"  {% if selected_month == 6 %}selected{% endif %}>June</option>
+            <option value="7"  {% if selected_month == 7 %}selected{% endif %}>July</option>
+            <option value="8"  {% if selected_month == 8 %}selected{% endif %}>August</option>
+            <option value="9"  {% if selected_month == 9 %}selected{% endif %}>September</option>
+            <option value="10" {% if selected_month == 10 %}selected{% endif %}>October</option>
+            <option value="11" {% if selected_month == 11 %}selected{% endif %}>November</option>
+            <option value="12" {% if selected_month == 12 %}selected{% endif %}>December</option>
+          </select>
+          <small class="text-muted small">
+            Used when Summary Type is Monthly.
+          </small>
+        </div>
+
+        <!-- Weekly controls -->
+        <div class="col-12 col-md-2">
+          <label for="start-date-input" class="form-label">Week Start</label>
+          <input type="date"
+                 class="form-control"
+                 id="start-date-input"
+                 name="start_date"
+                 value="{% if start_date %}{{ start_date|date:'Y-m-d' }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}">
+          <small class="text-muted small">
+            Used when Summary Type is Weekly.
+          </small>
+        </div>
+
+        <div class="col-12 col-md-12 text-md-end">
+          <button type="submit" class="btn btn-primary">
+            Update Summary
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Top summary cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted text-uppercase small mb-2">Bill Payments</div>
+          <div class="h4 mb-1 text-primary">
+            ${{ payments_total|floatformat:2 }}
+          </div>
+          <div class="text-muted small">
+            {{ payments_count }} payment{{ payments_count|pluralize }}.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted text-uppercase small mb-2">Hours</div>
+          <div class="h4 mb-1">
+            {{ hours_total|floatformat:2 }} h
+          </div>
+          <div class="text-success small">
+            ${{ hours_amount_total|floatformat:2 }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted text-uppercase small mb-2">Mileage</div>
+          <div class="h4 mb-1">
+            {{ miles_total|floatformat:2 }} mi
+          </div>
+          <div class="text-success small">
+            ${{ mileage_amount_total|floatformat:2 }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted text-uppercase small mb-2">Total Reimbursement</div>
+          <div class="h4 mb-1 text-success">
+            ${{ grand_total_reimbursement|floatformat:2 }}
+          </div>
+          <div class="text-muted small">
+            Hours + mileage.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bills table -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 mb-0">Bill Payments</h2>
+        <a href="{% url 'john:paid_bills' %}" class="btn btn-sm btn-outline-primary">
+          View full history
+        </a>
+      </div>
+
+      {% if payments %}
+        <div class="table-responsive">
+          <table class="table table-striped table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Bill</th>
+                <th>Amount</th>
+                <th>Date Paid</th>
+                <th>Account</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in payments %}
+                <tr>
+                  <td class="fw-semibold">{{ p.bill.name }}</td>
+                  <td>${{ p.amount|floatformat:2 }}</td>
+                  <td>{{ p.date_paid }}</td>
+                  <td>{{ p.account }}</td>
+                  <td>
+                    {% if p.bill.is_auto_pay %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle">
+                        Auto-pay
+                      </span>
+                    {% else %}
+                      <span class="badge bg-info-subtle text-info border border-info-subtle">
+                        Manual
+                      </span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">No bill payments in this period.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Hours & Mileage tables -->
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 mb-0">Hours</h2>
+            <a href="{% url 'john:time_entries' %}" class="btn btn-sm btn-outline-secondary">
+              All time entries
+            </a>
+          </div>
+          {% if work_entries %}
+            <div class="table-responsive">
+              <table class="table table-sm table-striped align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Date</th>
+                    <th>Hours</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for e in work_entries %}
+                    <tr>
+                      <td>{{ e.date }}</td>
+                      <td>{{ e.hours|floatformat:2 }}</td>
+                      <td>${{ e.hourly_rate|floatformat:2 }}</td>
+                      <td>${{ e.amount|floatformat:2 }}</td>
+                      <td>{{ e.description }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">No work entries in this period.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 mb-0">Mileage</h2>
+            <a href="{% url 'john:mileage_entries' %}" class="btn btn-sm btn-outline-secondary">
+              All mileage entries
+            </a>
+          </div>
+          {% if mileage_entries %}
+            <div class="table-responsive">
+              <table class="table table-sm table-striped align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Date</th>
+                    <th>Miles</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for e in mileage_entries %}
+                    <tr>
+                      <td>{{ e.date }}</td>
+                      <td>{{ e.miles|floatformat:2 }}</td>
+                      <td>${{ e.rate_per_mile|floatformat:3 }}</td>
+                      <td>${{ e.amount|floatformat:2 }}</td>
+                      <td>{{ e.description }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">No mileage entries in this period.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Details</title>
+</head>
+<body>
+    <h2>Hand Details</h2>
+    <p><strong>Hero has {{ hero_card_1 }} {{ hero_card_2 }}</strong>  in the <strong>{{ get_hero_position_display }} with 
+        {{% if hero_stack > villian_stack %}}
+            ${{ villian_stack }}
+        {% else %}
+            ${{ hero_stack }}
+        {% endif %}
+    effective stack. 
+    {{% if hero_stack < villian_stack %}}
+        ${{ villian_stack }}
+    {% else %}
+        ${{ hero_stack }}
+    {% endif %}
+    Hero's stack is $</p>
+    <h3>Preflop Action </h3>
+<p>{{ preflop_action }}</p>
+{% if flop_action %}
+<h3>Flop</h3>
+<p>Flop: {{ flop1 }} {{ flop2 }} {{ flop3 }}</p>
+<p>{{ flop_action }}</p>
+{% else %}
+<p> </p>
+{% if turn_action %}
+<h3>Turn</h3>
+<p>Turn: {{ turn }}</p>
+<p>{{ turn_action }}</p>
+{% else %}
+<p> </p>
+{% if river_action %}
+<h3>River</h3>
+<p>River: {{ river}}</p>
+<p>{{ river_action }}</p>
+{% else %}
+<p> </p>
+<h4>Villian Hand =  {{ villian_card_1 }} {{ villian_card_2 }}</h4>
+<p>{{ notes }}</p>
+</body>
+</html>

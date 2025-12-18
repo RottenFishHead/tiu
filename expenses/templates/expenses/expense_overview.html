@@ -1,0 +1,76 @@
+{% extends 'expenses/base.html' %}
+
+{% block content %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Overview</title>
+    <!-- Add Bootstrap CDN links here -->
+</head>
+<body>
+    <h1>Expense Overview</h1>
+    <h2>Monthly Expenses</h2>
+    <p>Total Expenses: ${{ total_expenses|default:"0" }}</p>
+    
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for expense in expenses|dictsortreversed:"created" %}
+                <tr>
+                    
+                  <td><a href="{% url 'expenses:expense-update' expense.id %}">{{ expense.name }}</a></td>
+                    <td>{{ expense.category }}</td>
+                    <td>${{ expense.amount }}</td>
+                    <td>{{ expense.created }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2>Fixed Expenses</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Amount</th>
+          <th>Due Date</th>
+          <th>Autopay?</th>
+          <th>Paid?</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for fixed_expense in fixed_expenses|dictsort:"day_to_pay" %}
+          <tr>
+            <td>
+              <a href="{% url 'expenses:fixed_expense_detail' pk=fixed_expense.pk %}">
+                {{ fixed_expense.name }}
+              </a>
+            </td>
+            <td>${{ fixed_expense.amount }}</td>
+            <td>{{ fixed_expense.day_to_pay }}</td>
+            {% if fixed_expense.autopay %}
+            <td class="text-success">Yes</td>
+              {% else %}
+                  <td class="text-danger">No</td>
+              {% endif %}
+              {% if fixed_expense.is_paid == "Yes" %}
+              <td class="text-success">Yes</td>
+            {% else %}
+              <td class="text-danger">No</td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <a href="{% url 'expenses:fixed_expense_create' %}" class="btn btn-primary">Create a new fixed expense</a>
+    <p style="m-6"></p>
+
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'expenses/base.html' %}  {# Assuming you have a base.html file for your base template #}
+{% block content %}
+
+
+<h1>Debt List</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Debtor Name</th>
+            <th>Description</th>
+            <th>Amount Owed</th>
+            <th>Total Amount Paid</th>
+            <th>Details</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for debt in debts %}
+        <tr>
+            <td><a href="{% url 'expenses:debt_details' debt.id %}">{{ debt.name }}</a></td>
+            <td>{{ debt.description }}</td>
+            <td>${{ debt.owed }}</td>
+            <td>${{ debt.total_amount_paid }}</td>
+            <td><a href="{% url 'expenses:debt_details' debt.id %}">Details</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

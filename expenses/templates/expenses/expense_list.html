@@ -1,0 +1,35 @@
+{% extends 'expenses/base.html' %}
+
+{% block content %}
+  <div class="container">
+    <h2 class="pt-3 pb-3">Expense List for the {{ current_month }}th Month</h2>
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Name</th>
+            <th>Amount</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category_expenses in grouped_expenses.items %}
+            <tr>
+              <td colspan="4" class="fw-bold text-uppercase">{{ category_expenses.0 }}</td>
+            </tr>
+            {% for expense in category_expenses.1|dictsort:"created" %}
+              <tr>
+                <td></td>
+                <td><a href="{% url 'expenses:expense-update' expense.id %}">{{ expense.name }}</a></td>
+                <td>${{ expense.amount }}</td>
+                <td>{{ expense.created }}</td>
+              </tr>
+            {% endfor %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class='p-4 fw-bold'>Total Expenses for the Month: ${{ total_expenses|floatformat:2  }}</p>
+  </div>
+{% endblock %}

@@ -1,0 +1,179 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+<script src="https://unpkg.com/htmx.org@1.7.0/dist/htmx.js"></script>
+</head>
+<body>
+
+
+    <header>
+        <nav class="navbar navbar-expand-sm bg-body-tertiary bg-success">
+            <div class="container-fluid">
+                <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#n_bar" aria-controls="navbarNavAltMarkup" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+              <div class="collapse navbar-collapse" id="n_bar">
+                <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{% url 'index' %}">Home</a>
+                  </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'poker:session_list' %}">Poker</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="{% url 'expenses:expense-overview' %}">Finances</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="{% url 'blog:post_list' %}">Blog</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="{% url 'todo:task-list' %}">To Do</a>
+                  </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'john:dashboard' %}">John</a>
+                  </li> 
+                </ul>
+              </div>
+            </div>
+          </nav>
+    </header>
+
+    <main role="main">
+      <div class="bg-imgage img-fluid p-5 text-center rounded" style="
+      background-image: url('{% static 'coast_101.webp' %}');
+      height: auto;
+      width: 100%;
+      background-size: cover;
+      background-repeat: no-repeat;
+    "
+  >
+        <h1 class="display-4">This Is Us</h1>
+        <p class="lead">Tracing life as we muddle through.</p>
+        <hr class="my-4">
+        <p>The personal site of two intrepid spirits, tracking the latter half of life.</p>
+        <p class="lead">
+          <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
+        </p>
+      </div>
+      <div class="album py-5 bg-light">
+        <div class="container">
+<h1 class="mb-4">{{ current_month_name }} Overview</h1>
+          <div class="row">
+            <div class="col-md-4">
+              <div class="card" style="width: 18rem;">
+                {% if all_expenses < all_income %}
+               
+                <div class="card-body">
+                  <h5 class="card-title">Expenses Overview</h5>
+                  <p class='text-success'>Your expenses (${{ all_expenses }}) are in check! Your income is (${{ all_income }}). Make sure you're saving each month.</p>
+                </div>
+                <ul class="list-group list-group-flush text-success">
+              
+                  <li class="list-group-item"><b>Expenses:</b> ${{ all_expenses }}</li>
+                  <li class="list-group-item"><b>Income:</b> ${{ all_income }}</li>
+                  <li class="list-group-item">Amount Ahead:</b> ${{ differential }}</li>
+                </ul>
+                <div class="card-body">
+                  <p class="fst-italic fs-6 lh-1 p-2">Reflect upon your present blessings, of which every man has plenty; not on your past misfortunes, of which all men have some.<br>~ Charles Dickens</p>
+                </div>           
+              
+                {% else %}
+                  <div class="card-body">
+                    <h5 class="card-title">Expenses Overview</h5>
+                  <p class='text-danger'>Your expenses (${{ all_expenses }}) are greater than your income (${{ all_income }}). What's up with that!</p>
+                </div>
+                <ul class="list-group list-group-flush">
+              
+                  <li class="list-group-item text-danger"><b>Expenses:</b> ${{ all_expenses }}</li>
+                  <li class="list-group-item"><b>Income:</b> ${{ all_income }}</li>
+                  <li class="list-group-item"><b>Amount Behind:</b> ${{ differential }}</li>
+             
+                </ul>
+              
+                <div class="card-body">
+                  <p class="fst-italic fs-6 lh-1 p-2">If your ship doesn’t come in, swim out to meet it! <br>~ Jonathan Winters</p>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+ 
+            <div class="col-md-4">
+              <ddiv class="card" style="width: 18rem;">
+                {% if overall_earned  > 0 %}
+               
+                <div class="card-body">
+                  <h5 class="card-title">Poker Overview</h5>
+                  <p class='text-success'>Doing great this month! Your ahead (${{ overall_total }}) and your hourly rate is ${{ overall_hourly_rate|floatformat:2 }}. Good job.</p>
+                </div>
+                <ul class="list-group list-group-flush text-success">
+              
+                  <li class="list-group-item"><b>Hours:</b> {{ overall_hours }}</li>
+                  <li class="list-group-item"><b>Total:</b> ${{ overall_earned }}</li>
+                  <li class="list-group-item">Hourly Rate:</b> ${{ overall_hourly_rate|floatformat:2 }}</li>
+                </ul>
+                <div class="card-body">
+                  <p class="fst-italic fs-6 lh-1 p-2">Poker is war. People pretend it is a game.<br>~ Doyle Brunson</p>
+                </div>           
+              
+                {% else %}
+                  <div class="card-body">
+                    <h5 class="card-title">Poker Overview</h5>
+                    <p class='text-danger'>Hmmm...there's a problem! You lost (${{ overall_total }}) and your hourly rate is ${{ overall_hourly_rate|floatformat:2 }}. <b>Study more!</b></p>
+                </div>
+                <ul class="list-group list-group-flush">
+              
+                  <li class="list-group-item"><b>Hours:</b> {{ overall_hours }}</li>
+                  <li class="list-group-item text-danger"><b>Total:</b> ${{ overall_total }}</li>
+                  <li class="list-group-item">Hourly Rate:</b> ${{ overall_hourly_rate|floatformat:2 }}</li>
+             
+                </ul>
+              
+                <div class="card-body">
+                  <p class="fst-italic fs-6 lh-1 p-2">In the long run there’s no luck in poker, but the short run is longer than most people know.<br>~ Rick Bennet</p>
+                </div>
+                {% endif %}
+              </div>
+            <div class="col-md-4">
+              <div class="card" style="width: 18rem;">
+                <div class="card-body">
+                  <h5 class="card-title">Budget Overview</h5>
+                  <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                </div>
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">Budget: ${{ total_budget_all }}</li>
+                  <li class="list-group-item">Expenses: ${{ total_expenses_all }}</li>
+                  {% if remaining_total > 0 %}
+                  <li class="list-group-item text-success">Remaining: ${{  remaining_total }}</li>
+                  {% else %}
+                  <li class="list-group-item text-danger">Remaining: ${{  remaining_total }}</li>
+                  {% endif %}
+                </ul>
+                <div class="card-body">
+                 {% if remaining_total > 0 %}
+                 <p class="fst-italic fs-6 lh-1 p-2">There is no dignity quite so impressive, and no independence quite so important, as living within your means.<br>~ Calvin Coolidge
+                 </p>
+                 {% else %}
+                 <p class="fst-italic fs-6 lh-1 p-2">The practice of thrift is not outdated. We must discipline ourselves to live within our incomes even if it means going without or making do. 
+                  The wise person can distinguish between basic needs and extravagant wants. <br>~ Marvin J Ashton
+                 </p>
+                 {% endif %}
+                </div>
+              </div>
+            </div>
+         </div>
+      </div>
+
+    </main>
+
+
+
+<footer>
+<!-- Add footer content, copyright information, etc. here -->
+</footer>
+
+<!-- Add your JS scripts or other bottom elements here -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</body>
+</html>

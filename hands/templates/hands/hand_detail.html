@@ -1,0 +1,87 @@
+{% extends 'poker/base.html' %}
+{% load static %}
+
+
+{% block content %}
+<style>
+
+    img {
+        margin: 5px;
+    }
+    .row {
+        border-style: inset;
+        margin-top: 10px;
+    }
+
+</style>
+
+<div class="container text-left ml-6" style='border-style: inset;'>
+
+  <p>Session: {{ hand.session }}</p>
+  <p>Player: {{ hand.hero }}</p>
+  <p>Effective Stack: {{ hand.effective }}</p>
+  <p>Result: {{ hand.result }}</p>
+
+  <p>Preflop Action: <br>
+    {{ hand.preflop_action }} </p>
+</div>
+<div class="container text-center">
+    <!-- Stack the columns on mobile by making one full-width and the other half-width -->
+    <div class="row">
+      <div class="col-sm-6">
+        <h2>Hero's Cards</h2>
+        <img src="{% static 'cards/' %}{{ hero_card_1_image_url }}" width="62" height="100"><img src="{% static 'cards/' %}{{ hero_card_2_image_url }}" width="62" height="100">
+        <p>Position: {{ hand.hero_position }}</p>
+        <p>Stack: ${{ hand.hero_stack }}</p>
+    </div>
+      <div class="col-sm-6 mt-4">
+        <h2>Villian's Cards ({{ hand.villian_image }})</h2>
+      
+        <img src="{% static 'cards/' %}{{ villian_card_1_image_url }}" width="62" height="100"><img src="{% static 'cards/' %}{{ villian_card_2_image_url }}" width="62" height="100">
+        <p>Position: {{ hand.villian_position }}</p>
+        <p>Stack: ${{ hand.villian_stack }}
+        </div>
+    </div>
+</div>
+
+{% if hand.flop_action %}
+    <div class="container text-left">
+    <!-- Columns start at 50% wide on mobile and bump up to 33.3% wide on desktop -->
+    <div class="row">
+      <div class="col-lg-4">
+        <h3>Flop</h3>
+       <p> <img src="{% static 'cards/' %}{{ flop1_image_url }}" width="62" height="100"><img src="{% static 'cards/' %}{{ flop2_image_url }}" width="62" height="100">
+        <img src="{% static 'cards/' %}{{ flop3_image_url }}" width="62" height="100"></p>
+        <p><b>Action:</b>  {{ hand.flop_action }}</p>
+    </div>
+    {% if hand.turn_action %}
+      <div class="col-lg-4">
+        <h3>Turn</h3>
+        <p> <img src="{% static 'cards/' %}{{ turn_image_url }}" width="62" height="100"></p>
+        <p><b>Action:</b> {{ hand.turn_action }}</p>
+      </div>
+      {% if hand.river_action %}
+      <div class="col-lg-4">
+        <h3>River</h3>
+        <p> <img src="{% static 'cards/' %}{{ river_image_url }}" width="62" height="100"></p>
+        <p><b>Action:</b> {{ hand.river_action }}</p>
+      </div>
+    </div>
+      {% endif %}
+      <p></p>
+    {% endif %}
+    <p></p>
+{% endif %}
+  <p></p>
+  </div>
+    <!-- Columns are always 50% wide, on mobile and desktop -->
+  <div class="container text-left mb-4">
+    <div class="row">
+      <div class="col">
+        <h4>Notes</h4>
+        <p> {{ hand.notes }} </p>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'expenses/base.html' %}
+
+{% block content %}
+<div class="card" style="width: 25rem;">
+    <div class="card-body">
+      <h2 class="card-title">{{ fixed_expense.name }}</h2>
+      <h5 class="card-subtitle mb-2 text-muted">{{ fixed_expense.get_frequency_display }} day to pay: {{ fixed_expense.day_to_pay }}</h5>
+      <p class="card-text">User: {{ fixed_expense.user }}</p>
+      <p class="card-text">Account: {{ fixed_expense.account }}</p>
+      <p class="card-text">Category: {{ fixed_expense.category }}</p>
+      <p class="card-text">Frequency: {{ fixed_expense.get_frequency_display }}</p>
+      <p class="card-text">Autopay: {{ fixed_expense.autopay }}</p>
+      <p class="card-text">Amount: {{ fixed_expense.amount }}</p>
+      <p class="card-text">Created: {{ fixed_expense.created }}</p>
+      <p class="card-text">Updated: {{ fixed_expense.updated_at }}</p>
+      <a href="{% url 'expenses:fixed_expense_update' pk=fixed_expense.pk %}" class="btn btn-primary">Edit</a>
+      <a href="{% url 'expenses:create_payment' %}" class="btn btn-danger">Record Payment</a>
+      <a href="{% url 'expenses:fixed_expense_list' %}" class="btn btn-secondary">Back to list</a>
+    </div>
+  </div>
+{% endblock %}
+

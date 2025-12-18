@@ -1,0 +1,26 @@
+{% extends 'expenses/base.html' %}
+
+{% block content %}
+  <h1>Income List</h1>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for income in incomes|dictsort:"created" %}
+        <tr>
+          <td>{{ income.source }}</td>
+          <td>${{ income.amount }}</td>
+          <td>{{ income.created }}</td>
+          <td><a href="{% url 'income:income_detail' pk=income.pk %}">Details</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <a class="btn btn-primary" href="{% url 'income:income_create' %}">Add new income</a>
+{% endblock content %}

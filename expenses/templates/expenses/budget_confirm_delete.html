@@ -1,0 +1,11 @@
+{% extends 'expenses/base.html' %}  {# Assuming you have a base.html file for your base template #}
+{% block content %}
+
+<h2>Delete Budget</h2>
+<p>Are you sure you want to delete "{{ budget }}"?</p>
+<form method="post" action="{% url 'delete_budget' budget.pk %}">
+  {% csrf_token %}
+  <button type="submit">Yes, delete</button>
+</form>
+
+{% endblock %}

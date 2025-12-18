@@ -1,0 +1,52 @@
+{% extends 'expenses/base.html' %}  {# Assuming you have a base.html file for your base template #}
+{% block content %}
+
+
+
+<div class="container mt-5">
+    <h1>Monthly Expense Totals</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th>Total Expenses</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for month, total_expense in monthly_totals.items %}
+                <tr>
+                    <td>
+                        {% if month == 'January' %}
+                            <a href="{% url 'expenses:monthly_expenses_list' month=1 %}">January</a>
+                        {% elif month == 'February' %}
+                            <a href="{% url 'expenses:monthly_expenses_list' month=2 %}">February</a>
+                        {% elif month == 'March' %}
+                            <a href="{% url 'expenses:monthly_expenses_list' month=3 %}">March</a>
+                        {% elif month == 'April' %}
+                            <a href="{% url 'expenses:monthly_expenses_list' month=4 %}">April</a>
+                        {% elif month == 'May' %}
+                            <a href="{% url 'expenses:monthly_expenses_list' month=5 %}">May</a>
+                        {% elif month == 'June' %}
+                            <a href="{% url 'expenses:monthly_expenses_list' month=6 %}">June</a>
+                        {% elif month == 'July' %}
+                            <a href="{% url 'expenses:monthly_expenses_list' month=7 %}">July</a>
+                        {% elif month == 'August' %}
+                            <a href="{% url 'expenses:monthly_expenses_list' month=8 %}">August</a>
+                        {% elif month == 'September' %}
+                            <a href="{% url 'expenses:monthly_expenses_list' month=9 %}">September</a>
+                        {% elif month == 'October' %}
+                            <a href="{% url 'expenses:monthly_expenses_list' month=10 %}">October</a>
+                        {% elif month == 'November' %}
+                            <a href="{% url 'expenses:monthly_expenses_list' month=11 %}">November</a>
+                        {% elif month == 'December' %}
+                            <a href="{% url 'expenses:monthly_expenses_list' month=12 %}">December</a>
+                        {% endif %}
+                    </td>
+                    <td>{{ total_expense }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

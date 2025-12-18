@@ -1,0 +1,64 @@
+{% extends 'poker/base.html' %}
+
+{% block content %}
+  <h2>Session List - {{ current_month }}/{{ current_year }}</h2>
+  <div class="table-responsive">
+    <table class="table table-bordered">
+      <thead class="thead-dark">
+        <tr>
+          <th>Date</th>
+          <th>Stakes</th>
+          <th>Hours</th>
+          <th>Win/Loss</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for session in sessions %}
+          <tr>
+            <td>
+              <a href="{% url 'poker:session_detail' session_id=session.id %}">
+                {{ session.date }}
+              </a>
+            </td>
+            <td>
+              {{ session.get_stakes_display }}
+            </td>
+            <td>
+              {{ session.hours }}
+            </td>
+            <td>
+              {% if session.win_loss > 0 %}
+                <span class="text-success">${{ session.win_loss|floatformat:2 }}</span>
+              {% elif session.win_loss < 0 %}
+                <span class="text-danger">${{ session.win_loss|floatformat:2 }}</span>
+              {% else %}
+                ${{ session.win_loss|floatformat:2 }}
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2"></td>
+          <td>
+            <strong>
+              Overall Hourly Rate:
+              <span class="{% if overall_hourly_rate > 0 %}text-success{% elif overall_hourly_rate < 0 %}text-danger{% endif %}">
+                {{ overall_hourly_rate|floatformat:2 }}
+              </span>
+            </strong>
+          </td>
+          <td>
+            <strong>
+              Overall Total:
+              <span class="{% if overall_total > 0 %}text-success{% elif overall_total < 0 %}text-danger{% endif %}">
+                {{ overall_total|floatformat:2 }}
+              </span>
+            </strong>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+{% endblock %}

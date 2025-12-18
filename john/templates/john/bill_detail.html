@@ -1,0 +1,128 @@
+{% extends "john/base.html" %}
+
+{% block title %}{{ bill.name }} – John{% endblock %}
+
+{% block page_header %}
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h1>{{ bill.name }}</h1>
+      <p class="text-muted">Bill details and payment history</p>
+    </div>
+    <div>
+      <a href="{% url 'john:bill_edit' bill.pk %}" class="btn btn-outline-secondary">
+        Edit Bill
+      </a>
+      <a href="{% url 'john:pay_bill' bill.pk %}" class="btn btn-primary">
+        Pay Bill
+      </a>
+    </div>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Bill Information</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-borderless mb-0">
+            <tbody>
+              <tr>
+                <th style="width: 40%;">Bill Name:</th>
+                <td class="fw-semibold">{{ bill.name }}</td>
+              </tr>
+              <tr>
+                <th>Amount Due:</th>
+                <td class="fw-semibold">${{ bill.amount }}</td>
+              </tr>
+              <tr>
+                <th>Due Day:</th>
+                <td>Day {{ bill.due_day }} of each month</td>
+              </tr>
+              <tr>
+                <th>Account:</th>
+                <td>{{ bill.account }}</td>
+              </tr>
+              <tr>
+                <th>Payment Type:</th>
+                <td>
+                  {% if bill.is_auto_pay %}
+                    <span class="badge bg-success">Auto-pay</span>
+                  {% else %}
+                    <span class="badge bg-warning">Manual</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <th>Status:</th>
+                <td>
+                  {% if bill.active %}
+                    <span class="badge bg-success">Active</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Inactive</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% if bill.notes %}
+                <tr>
+                  <th>Notes:</th>
+                  <td>{{ bill.notes|linebreaks }}</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">Payment History</h5>
+        </div>
+        <div class="card-body">
+          {% if payments %}
+            <div class="table-responsive">
+              <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Date Paid</th>
+                    <th>Amount</th>
+                    <th>Receipt</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for payment in payments %}
+                    <tr>
+                      <td>{{ payment.date_paid }}</td>
+                      <td class="fw-semibold">${{ payment.amount }}</td>
+                      <td>
+                        {% if payment.receipt_image %}
+                          <a href="{{ payment.receipt_image.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                            View
+                          </a>
+                        {% else %}
+                          <span class="text-muted small">None</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">No payment history for this bill yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <a href="{% url 'john:bill_list' %}" class="btn btn-outline-secondary">
+      ← Back to Bill List
+    </a>
+  </div>
+{% endblock %}

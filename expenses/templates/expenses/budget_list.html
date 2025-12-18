@@ -1,0 +1,15 @@
+{% extends 'expenses/base.html' %}  {# Assuming you have a base.html file for your base template #}
+{% block content %}
+
+<h2>Budget List</h2>
+
+{% for budget in budgets %}
+  <p>{{ budget.category }} - ${{ budget.amount }} -  <a href="{% url 'expenses:edit_budget' pk=budget.pk %}">Edit</a></p>
+
+{% endfor %}
+
+<p><a href="{% url 'expenses:create_budget' %}">
+  <button>Create New Budget Item</button>
+</a></p>
+
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'todo/base.html' %}
+
+
+{% block content %}
+{% for task in tasks %}
+<div class="accordion accordion-flush" id="accordionFlushExample">
+    <div class="accordion-item">
+      <h2 class="accordion-header border border-primary" id="flush-headingOne">
+        <button class="accordion-button collapsed fs-5 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+            {{ task.title }} - {{ task.when_created }}
+        </button>
+      </h2>
+      <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
+        <div class="accordion-body">
+            <p>Get done by: {{ task.due }} </p>
+            <p>Notes: {{ task.notes }} </p>
+            <p>Created: {{ task.created }}</p>
+            <a href="{% url 'todo:view-task' task.id %}">Edit</a>
+            </div>
+      </div>
+    </div>
+</div>
+{% endfor %}
+
+
+
+<h2 class="title is-3 ml-5 pt-4 has-text-danger">Appointments</h2>
+<div class="card-table px-6 "> 
+  <div style="overflow-x:auto;">
+    <table class="table is-hoverable is-fullwidth is-narrow is-bordered is-striped mb-6"> 
+      <thead>
+      <tr>
+          <th>To Do</th>
+          <th>Due Date</th>
+          <th>Note</th>
+      </tr>
+      </thead> 
+      <tbody>
+    {% for appointment in appointments %}
+    <tr>
+        <td><a href="{% url 'todo:view-task' appointment.id %}">{{ appointment.title }}</a></td>
+       
+        <td> {{ appointment.due }} </td>
+        <td> {{ appointment.notes }} </td>
+        
+    {% endfor %}
+    </tr>
+</tbody>
+     
+</table> 
+</div>
+</div>
+{% endblock content %}
+
+

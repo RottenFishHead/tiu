@@ -1,0 +1,15 @@
+{% extends 'poker/base.html' %}
+
+{% block content %}
+
+<h3 class='fs-5 text-warning fst-italic'>Current Hourly Rate Overall: ${{ overall_hourly_rate|floatformat:2 }} ({{ overall_hours }} hours)</span></h3>
+
+
+{% include 'partials/overall_chart_partial.html' %}
+
+<h1 class='mb-6'>Session List by Month</h1>
+{% include 'partials/month_sessions_partial.html' %}
+
+
+
+{% endblock %}

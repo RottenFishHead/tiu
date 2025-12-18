@@ -1,0 +1,103 @@
+{% extends "john/base.html" %}
+
+{% block title %}Mileage – John{% endblock %}
+
+{% block page_header %}
+  <h1 class="mb-1">Mileage</h1>
+  <p class="mb-0">Track miles driven and reimbursement amounts.</p>
+{% endblock %}
+
+{% block content %}
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <form method="get" class="row g-3 align-items-end">
+        <div class="col-sm-4 col-md-3">
+          <label for="year-select" class="form-label">Year</label>
+          <select name="year" id="year-select" class="form-select">
+            <option value="">All</option>
+            {% for y in years %}
+              <option value="{{ y|date:'Y' }}" {% if selected_year == y|date:'Y' %}selected{% endif %}>
+                {{ y|date:"Y" }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-4 col-md-3">
+          <label for="month-select" class="form-label">Month</label>
+          <select name="month" id="month-select" class="form-select">
+            <option value="">All</option>
+            {% for m in months %}
+              <option value="{{ m|date:'n' }}" {% if selected_month == m|date:'n' %}selected{% endif %}>
+                {{ m|date:"F" }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-4 col-md-3">
+          <button type="submit" class="btn btn-outline-primary w-100">
+            Filter
+          </button>
+        </div>
+        <div class="col-md-3 text-md-end">
+          <a href="{% url 'john:mileage_entry_create' %}" class="btn btn-primary">
+            + Add Mileage
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted text-uppercase small mb-2">Total Miles</div>
+          <div class="h3 mb-0">{{ total_miles|floatformat:2 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted text-uppercase small mb-2">Total Reimbursement</div>
+          <div class="h3 mb-0 text-success">${{ total_amount|floatformat:2 }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if entries %}
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>Miles</th>
+                <th>Rate</th>
+                <th>Amount</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for e in entries %}
+                <tr>
+                  <td>{{ e.date }}</td>
+                  <td>{{ e.miles|floatformat:2 }}</td>
+                  <td>${{ e.rate_per_mile|floatformat:3 }}</td>
+                  <td>${{ e.amount|floatformat:2 }}</td>
+                  <td>{{ e.description }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="alert alert-info">
+      No mileage entries yet. Start by adding a trip.
+    </div>
+  {% endif %}
+{% endblock %}

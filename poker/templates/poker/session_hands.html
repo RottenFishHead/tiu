@@ -1,0 +1,15 @@
+{% extends 'poker/base.html' %}
+
+{% block content %}
+  <h2>All Sessions</h2>
+  
+  {% if sessions %}
+    <ul>
+      {% for session in sessions %}
+        <li><a href="{% url 'hands:session_hands_list' session.id %}">{{ session.date }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No sessions with hands found.</p>
+  {% endif %}
+{% endblock %}

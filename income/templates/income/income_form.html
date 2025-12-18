@@ -1,0 +1,16 @@
+<!-- templates/income/income_form.html -->
+{% extends 'expenses/base.html' %}
+
+{% block title %}<h1>Income</h1>{% endblock %}
+
+
+{% block content %}
+  <h1>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Income</h1>
+  <form method="post" class="post-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save</button>
+  </form>
+  <a href="{% url 'income:income_list' %}">Back to list</a>
+{% endblock %}
+

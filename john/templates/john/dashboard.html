@@ -1,0 +1,309 @@
+{% extends "john/base.html" %}
+
+{% block title %}John – Dashboard{% endblock %}
+
+{% block page_header %}
+  <h1 class="mb-1">John’s Bill Dashboard</h1>
+  <p class="mb-0">
+    Today is <strong>{{ today }}</strong>. Keep an eye on what’s due and what you’ve already paid.
+  </p>
+{% endblock %}
+
+{% block content %}
+
+  <!-- Top summary cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted text-uppercase small mb-2">Total Unpaid</div>
+          <div class="h3 mb-1">${{ total_unpaid|floatformat:2 }}</div>
+          <div class="text-muted small">All open bills across every account.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted text-uppercase small mb-2">Overdue</div>
+          <div class="h3 mb-1 text-danger">${{ total_overdue|floatformat:2 }}</div>
+          <div class="text-muted small">
+            Bills past due that still need attention.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted text-uppercase small mb-2">
+            Paid in {{ current_month_name }} {{ current_year }}
+          </div>
+          <div class="h3 mb-1 text-success">${{ total_paid_this_month|floatformat:2 }}</div>
+          <div class="text-muted small">
+            {{ paid_this_month_count }} bill{{ paid_this_month_count|pluralize }} paid this month.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+
+  <!-- Bills due section -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 mb-0">Overdue Bills</h2>
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+              Needs attention
+            </span>
+          </div>
+
+          {% if overdue_bills %}
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Bill</th>
+                    <th>Due</th>
+                    <th>Amount</th>
+                    <th>Account</th>
+                    <th class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for bill in overdue_bills %}
+                    <tr class="table-danger">
+                      <td class="fw-semibold">
+                        <a href="{% url 'john:bill_detail' bill.pk %}" class="text-decoration-none text-dark">
+                          {{ bill.name }}
+                        </a>
+                      </td>
+                      <td>{{ bill.due_date }}</td>
+                      <td>${{ bill.amount }}</td>
+                      <td>{{ bill.account }}</td>
+                      <td class="text-end">
+                        <a href="{% url 'john:pay_bill' bill.pk %}" class="btn btn-sm btn-outline-light bg-danger text-white">
+                          Pay
+                        </a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-3 text-end">
+              <a href="{% url 'john:bill_list' %}" class="btn btn-outline-danger btn-sm">
+                View all unpaid bills
+              </a>
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">No overdue bills. Nice job 👌</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 mb-0">Due in the Next 7 Days</h2>
+            <span class="badge bg-warning-subtle text-warning border border-warning-subtle">
+              Coming up
+            </span>
+          </div>
+
+          {% if due_soon_bills %}
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Bill</th>
+                    <th>Due</th>
+                    <th>Amount</th>
+                    <th>Account</th>
+                    <th class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for bill in due_soon_bills %}
+                    <tr class="table-warning">
+                      <td class="fw-semibold">
+                        <a href="{% url 'john:bill_detail' bill.pk %}" class="text-decoration-none text-dark">
+                          {{ bill.name }}
+                        </a>
+                      </td>
+                      <td>{{ bill.due_date }}</td>
+                      <td>${{ bill.amount }}</td>
+                      <td>{{ bill.account }}</td>
+                      <td class="text-end">
+                        <a href="{% url 'john:pay_bill' bill.pk %}" class="btn btn-sm btn-outline-secondary">
+                          Prepare to pay
+                        </a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-3 text-end">
+              <a href="{% url 'john:bill_list' %}" class="btn btn-outline-primary btn-sm">
+                View all unpaid bills
+              </a>
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">Nothing due in the next week.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bills paid this month + reports links -->
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 mb-0">
+              Bills Paid – {{ current_month_name }} {{ current_year }}
+            </h2>
+            <a href="{% url 'john:paid_bills' %}?year={{ current_year }}&month={{ today|date:'n' }}"
+               class="btn btn-outline-primary btn-sm">
+              See full history
+            </a>
+          </div>
+
+          {% if paid_this_month %}
+            <div class="table-responsive">
+              <table class="table table-sm table-striped align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Bill</th>
+                    <th>Paid Date</th>
+                    <th>Amount</th>
+                    <th>Account</th>
+                    <th>Receipt</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for payment in paid_this_month %}
+                    <tr>
+                      <td class="fw-semibold">
+                        <a href="{% url 'john:bill_detail' payment.bill.pk %}" class="text-decoration-none text-dark">
+                          {{ payment.bill.name }}
+                        </a>
+                      </td>
+                      <td>{{ payment.date_paid }}</td>
+                      <td>${{ payment.amount }}</td>
+                      <td>{{ payment.account }}</td>
+                      <td>
+                        {% if payment.receipt_image %}
+                          <a href="{{ payment.receipt_image.url }}" target="_blank"
+                             class="btn btn-sm btn-outline-secondary">
+                            View
+                          </a>
+                        {% else %}
+                          <span class="text-muted small">None</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">
+              No bills have been marked paid yet this month.
+            </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  <!-- Hours & mileage this month -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted text-uppercase small mb-2">
+            Hours – {{ current_month_name }} {{ current_year }}
+          </div>
+          <div class="h3 mb-1">
+            {{ hours_this_month|floatformat:2 }} hours
+          </div>
+          <div class="text-success fw-semibold mb-1">
+            ${{ hours_amount_this_month|floatformat:2 }}
+          </div>
+          <div class="text-muted small">
+            <a href="{% url 'john:time_entries' %}">View time entries</a>
+            ·
+            <a href="{% url 'john:time_entry_create' %}">Add hours</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <div class="text-muted text-uppercase small mb-2">
+            Mileage – {{ current_month_name }} {{ current_year }}
+          </div>
+          <div class="h3 mb-1">
+            {{ miles_this_month|floatformat:2 }} miles
+          </div>
+          <div class="text-success fw-semibold mb-1">
+            ${{ mileage_amount_this_month|floatformat:2 }}
+          </div>
+          <div class="text-muted small">
+            <a href="{% url 'john:mileage_entries' %}">View mileage</a>
+            ·
+            <a href="{% url 'john:mileage_entry_create' %}">Add trip</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div class="col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h2 class="h6 text-uppercase text-muted mb-3">Reports & Shortcuts</h2>
+          <div class="list-group list-group-flush">
+            <a href="{% url 'john:bill_list' %}" class="list-group-item list-group-item-action">
+              Unpaid Bills Overview
+            </a>
+            <a href="{% url 'john:paid_bills' %}" class="list-group-item list-group-item-action">
+              Full Paid Bills History
+            </a>
+            <a href="/admin/john/account/" class="list-group-item list-group-item-action">
+              Manage Accounts (Admin)
+            </a>
+            <a href="/admin/john/accountwithdrawal/" class="list-group-item list-group-item-action">
+              View Account Withdrawals (Admin)
+            </a>
+          </div>
+<li><h6 class="dropdown-header">Reports</h6></li>
+    <li>
+      <a class="dropdown-item" href="{% url 'john:monthly_summary' %}">
+        Summary (Monthly / Weekly)
+      </a>
+    </li>
+  </ul>
+</li>
+          <div class="mt-3 text-muted small">
+            Need more reports?
+            <br>
+            We can add monthly summaries, per-account totals, or exports to CSV.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

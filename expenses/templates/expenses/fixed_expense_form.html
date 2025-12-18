@@ -1,0 +1,13 @@
+{% extends 'expenses/base.html' %}
+
+{% block title %}Details of {{ expense.name }} {% endblock %}
+
+{% block content %}
+  <h2>{% if form.instance.pk %}Edit{% else %}Create{% endif %} Fixed Expense</h2>
+  <form method="post" action="{% if form.instance.pk %}{% url 'expenses:fixed_expense_update' pk=form.instance.pk %}{% else %}{% url 'expenses:fixed_expense_create' %}{% endif %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save</button>
+  </form>
+  <a href="{% url 'expenses:fixed_expense_list' %}">Back to list</a>
+{% endblock %}

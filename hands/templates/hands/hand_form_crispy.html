@@ -1,0 +1,198 @@
+{% extends 'poker/base.html' %}
+
+
+{% block content %}
+
+<div class='container m-4'>
+  <h2>Add Hand</h2>
+
+  <form method="POST" class="post-form" enctype="multipart/form-data">
+    {% csrf_token %}
+    <p>{{ form.session }}</p>
+    <p>{{ form.hero}}</p>
+    <p>{{ form.result  }}</p>
+    <p>{{ form.effective  }}</p>
+
+      <div class="col-sm-6 mb-3 mb-sm-4">
+    <div class="card w-75">
+      <div class="card-body">
+        <h5 class="card-title">Hero Hand</h5>
+      </div>
+      <ul class="list-group list-group-flush">
+        <div class="row">
+          <div class="col-sm">
+        <li class="list-group-item mr-2" style="width: 130px;">{{ form.hero_card_1 }}</li> 
+          </div>
+          <div class="col-sm">
+            <li class="list-group-item mr-2" style="width: 130px;">{{ form.hero_card_2 }}</li>
+          </div>
+          </div>
+        <li class="list-group-item">{{ form.hero_position }}</li>
+        <li class="list-group-item">{{ form.hero_stack }}</li>
+      </ul>
+      
+    </div>
+  </div>
+  <div class="col-sm-6 mb-3 mb-sm-0">
+    <div class="card w-75" style="width: 18rem;">
+      <div class="card-body">
+        <h5 class="card-title">Villian Hand</h5>
+        <p class="card-text">{{ form.villian_image }} </p>
+      </div>
+      <ul class="list-group list-group-flush">
+        <div class="row">
+          <div class="col-sm">
+        <li class="list-group-item mr-2" style="width: 130px;">{{ form.villian_card_1 }}</li> 
+          </div>
+          <div class="col-sm">
+            <li class="list-group-item mr-2" style="width: 130px;">{{ form.villian_card_2 }}</li>
+          </div>
+          </div>
+  
+        <li class="list-group-item">{{ form.villian_position }}</li>
+        <li class="list-group-item">{{ form.villian_stack }}</li>
+      </ul>
+    
+    </div>
+  </div>
+<div class="col-sm-6 mb-3">
+<div class="card w-75">
+  <div class="card-body">
+    <h5 class="card-title">Preflop Action</h5>
+    <p class="card-text">
+      <div class='row'>
+        <div class="col-sm">
+          <li class="list-group-item mr-2" style="width: 150px;">{{ form.preflop_action_h }}</li> 
+        </div>
+        <div class="col-sm">
+          <li class="list-group-item mr-2" style="width: 150px;">{{ form.preflop_bet_h }}</li> 
+        </div>
+        <div class="col-sm">
+          <li class="list-group-item mr-2" style="width: 150px;">{{ form.preflop_action_v }}</li> 
+        </div>
+        <div class="col-sm">
+          <li class="list-group-item mr-2" style="width: 150px;">{{ form.preflop_bet_v }}</li> 
+        </div>
+        <div class="col-sm">
+          <li class="list-group-item mr-2" style="width: 150px;">{{ form.preflop_callers }}</li> 
+        </div>
+      </div>
+    </p>
+  </div>
+</div>
+</div>
+  <div class="col-sm-6 mb-3 mb-sm-0">
+    <div class="card w-75">
+      <div class="card-body">
+        <h5 class="card-title">Flop Action</h5>
+        <ul class="list-group list-group-flush">
+          <div class="row">
+            <div class="col-sm">
+          <li class="list-group-item mr-2" style="width: 120px;">{{ form.flop1  }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 120px;">{{ form.flop2  }}</li>
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 120px;">{{ form.flop3  }}</li>
+            </div>
+            </div>
+        </ul>
+        <p class="card-text">
+          <div class='row'>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.flop_action_h  }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.flop_bet_h  }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.flop_action_v  }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.flop_bet_v  }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.flop_callers  }}</li> 
+            </div>
+          </div>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 mb-3 mb-sm-0">
+    <div class="card w-75">
+      <div class="card-body">
+        <h5 class="card-title">Turn Action</h5>
+        <ul class="list-group list-group-flush">
+          <div class="row">
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 120px;">{{ form.turn  }}</li> 
+            </div>
+          </div>
+        </ul>
+        <p class="card-text">
+          <div class="row">
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.turn_action_h  }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.turn_bet_h  }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.turn_action_v  }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.turn_bet_v  }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.turn_callers  }}</li> 
+            </div>
+          </div>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 mb-3 mb-sm-0">
+    <div class="card w-75">
+      <div class="card-body">
+        <h5 class="card-title">River Action</h5>
+        <ul class="list-group list-group-flush">
+          <div class="row">
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 120px;">{{ form.river  }}</li> 
+            </div>
+          </div>
+        </ul>
+        <p class="card-text">
+          <div class="row">
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.river_action_h  }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.river_bet_h  }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.river_action_v  }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.river_bet_v  }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.river_callers  }}</li> 
+            </div>
+          </div>
+        </p>
+      </div>
+    </div>
+  </div>
+
+<h4 class="mt-4">Notes on Hand</h4>
+<p> {{ form.notes  }} </p>
+<div class="mt-4">
+    <button type="submit">Save</button>
+</div>
+</div>
+  </form>
+
+{% endblock %}

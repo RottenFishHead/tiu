@@ -1,0 +1,49 @@
+{% extends "john/base.html" %}
+
+{% block title %}{{ title }} – John{% endblock %}
+
+{% block page_header %}
+  <h1>{{ title }}</h1>
+  <p>Add or update a bill, including its due date, amount, and account.</p>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-lg-8 col-xl-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% for field in form %}
+              <div class="mb-3">
+                <label class="form-label" for="{{ field.id_for_label }}">
+                  {{ field.label }}
+                  {% if field.field.required %}
+                    <span class="text-danger">*</span>
+                  {% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}
+                  <div class="form-text">{{ field.help_text }}</div>
+                {% endif %}
+                {% for error in field.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endfor %}
+
+            <div class="d-flex justify-content-between mt-3">
+              <a href="{% url 'john:bill_list' %}" class="btn btn-outline-secondary">
+                Cancel
+              </a>
+              <button type="submit" class="btn btn-primary">
+                Save Bill
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

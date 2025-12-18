@@ -1,0 +1,133 @@
+{% extends "john/base.html" %}
+{% block title %}Unpaid Bills – John{% endblock %}
+
+{% block page_header %}
+  <h1>Unpaid Bills</h1>
+  <p>Review upcoming bills, see what’s urgent, and mark them paid.</p>
+{% endblock %}
+
+{% block content %}
+  {% if bills %}
+    <div class="mb-3">
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <div class="d-flex align-items-center">
+          <span class="badge rounded-pill bg-danger me-2" style="width: 16px; height: 16px;"></span>
+          <span class="small text-muted">Overdue</span>
+        </div>
+        <div class="d-flex align-items-center">
+          <span class="badge rounded-pill bg-warning text-dark me-2" style="width: 16px; height: 16px;"></span>
+          <span class="small text-muted">Due within 7 days</span>
+        </div>
+        <div class="d-flex align-items-center">
+          <span class="badge rounded-pill bg-secondary me-2" style="width: 16px; height: 16px;"></span>
+          <span class="small text-muted">More than 7 days out</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="h5 mb-0">Current Unpaid Bills</h2>
+          <a href="{% url 'john:bill_create' %}" class="btn btn-primary btn-sm">
+            + Add Bill
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Bill</th>
+                <th>Amount</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Account</th>
+                <th>Type</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for bill in bills %}
+              {% if bill.due_status == "overdue" %}
+                <tr class="table-danger">
+              {% elif bill.due_status == "soon" %}
+                <tr class="table-warning">
+              {% else %}
+                <tr class="table-secondary">
+              {% endif %}
+                <td class="fw-semibold">
+                  <a href="{% url 'john:bill_detail' bill.pk %}" class="text-decoration-none text-dark">
+                    {{ bill.name }}
+                  </a>
+                </td>
+                <td>${{ bill.amount }}</td>
+                <td>
+                  <span class="badge bg-light text-dark border">
+                    {{ bill.due_date }}
+                  </span>
+                </td>
+                <td>
+                  {% if bill.due_status == "overdue" %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                      {% if bill.days_until_due == -1 %}
+                        1 day overdue
+                      {% elif bill.days_until_due < -1 %}
+                        {{ bill.days_until_due_abs }} days overdue
+                      {% else %}
+                        Overdue
+                      {% endif %}
+                    </span>
+                  {% elif bill.due_status == "soon" %}
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle">
+                      {% if bill.days_until_due == 0 %}
+                        Due today
+                      {% elif bill.days_until_due == 1 %}
+                        Due tomorrow
+                      {% else %}
+                        Due in {{ bill.days_until_due }} days
+                      {% endif %}
+                    </span>
+                  {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                      {% if bill.days_until_due == 1 %}
+                        In 1 day
+                      {% else %}
+                        In {{ bill.days_until_due }} days
+                      {% endif %}
+                    </span>
+                  {% endif %}
+                </td>
+                <td>{{ bill.account }}</td>
+                <td>
+                  {% if bill.is_auto_pay %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                      Auto-pay
+                    </span>
+                  {% else %}
+                    <span class="badge bg-info-subtle text-info border border-info-subtle">
+                      Manual
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <a href="{% url 'john:pay_bill' bill.pk %}" class="btn btn-success btn-sm me-1">
+                    Mark as Paid
+                  </a>
+                  <a href="{% url 'john:bill_edit' bill.pk %}" class="btn btn-outline-secondary btn-sm">
+                    Edit
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="alert alert-success">
+      🎉 You have no unpaid bills at the moment.
+    </div>
+  {% endif %}
+{% endblock %}

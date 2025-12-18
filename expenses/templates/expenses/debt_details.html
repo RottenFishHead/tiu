@@ -1,0 +1,24 @@
+{% extends 'expenses/base.html' %}  {# Assuming you have a base.html file for your base template #}
+{% block content %}
+
+<div class="container mt-5">
+    <h1>Debt Details</h1>
+
+    <dl class="row">
+        <dt class="col-sm-3">Debtor Name:</dt>
+        <dd class="col-sm-9">{{ debt.name }}</dd>
+
+        <dt class="col-sm-3">Description:</dt>
+        <dd class="col-sm-9">{{ debt.description }}</dd>
+
+        <dt class="col-sm-3">Amount Owed:</dt>
+        <dd class="col-sm-9">${{ debt.owed }}</dd>
+
+        <dt class="col-sm-3">Total Amount Paid:</dt>
+        <dd class="col-sm-9">${{ debt.total_amount_paid }}</dd>
+        <dt class="col-sm-3">Remaining:</dt>
+        <dd class="col-sm-9">${{ debt_left }}</dd>
+    </dl>
+</div>
+<p><a href="{% url 'expenses:create_payment' debt_id=debt.id %}" class="btn btn-primary">Edit</a></p>
+{% endblock content %}

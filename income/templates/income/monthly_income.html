@@ -1,0 +1,40 @@
+{% extends 'expenses/base.html' %}
+
+{% block content %}
+
+<h1>Monthly Income Report - {{ start_date }}  -  {{ end_date }}</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Source</th>
+            <th>Amount</th>
+            <th>Created</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in monthly_incomes %}
+            <tr>
+                <td>{{ entry.source.name }}</td>
+                <td>${{ entry.amount }}</td>
+                <td>{{ entry.created }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="2">Total Monthly Income</td>
+            <td>${{ total_monthly_income }}</td>
+        </tr>
+    </tfoot>
+</table>
+<h2>Net Income Report</h2>
+<p>Total Monthly Expenses: ${{ total_monthly_expenses }} </p>
+<p>Total Fixed Expenses: ${{ total_fixed_expenses }}</p>
+<p class="fw-bold">Total Expenses: ${{ total_all_expenses }}</p>
+{% if net_income > total_all_expenses %}
+<h3 class="text-success">Net Income: ${{ net_income }}</h3>
+{% else %}
+<h3 class="text-danger">Net Income: ${{ net_income }}</h3>
+{% endif %}
+{% endblock content %}

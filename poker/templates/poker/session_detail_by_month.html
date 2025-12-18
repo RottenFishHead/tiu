@@ -1,0 +1,47 @@
+{% extends 'poker/base.html' %}
+{% block content %}
+<style>
+    .win { color: green; 
+    }
+    .loss { color: red; 
+    }
+  </style>
+
+<div class="container mt-4">
+    <h1>Session Details for {{ month }}/{{ year }}</h1>
+    <p>Month Profit:  {% if total_profit_for_month > 0 %}
+        <span class="win">+${{ total_profit_for_month }}</span>
+    {% elif total_profit_for_month < 0 %}
+        <span class="loss">${{ total_profit_for_month}}</span>
+    {% else %}
+        ${{ total_profit_for_month }}
+    {% endif %}
+        
+    </p>
+    <table class="table table-bordered">
+        <thead class="thead-dark">
+            <tr>
+                <th>Date</th>
+                <th>Stakes</th>
+                <th>Location</th>
+                <th>Total Profit</th>
+                <!-- Add more columns as needed -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for session in sessions_in_month %}
+                <tr>
+                    <td><a href="{% url 'poker:session_detail' session.id %}">{{ session.date }}</a></td>
+                    <td>{{ session.get_stakes_display}}</td>
+                    <td>{{ session.casino }}</td>
+                    <td style="color: {% if session.total_profit > 0 %}green{% elif session.total_profit < 0 %}red{% else %}black{% endif %}">
+                        ${{ session.total_profit|default:0 }}.00
+                    </td>
+                    <!-- Add more cells as needed -->
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock content %}

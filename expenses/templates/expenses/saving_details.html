@@ -1,0 +1,24 @@
+{% extends 'expenses/base.html' %}  {# Assuming you have a base.html file for your base template #}
+{% block content %}
+
+<div class="container mt-5">
+    <h1>Savings Details</h1>
+
+    <dl class="row">
+        <dt class="col-sm-3">Goal Name:</dt>
+        <dd class="col-sm-9">{{ saving.name }}</dd>
+
+        <dt class="col-sm-3">Description:</dt>
+        <dd class="col-sm-9">{{ saving.description }}</dd>
+
+        <dt class="col-sm-3">Goal:</dt>
+        <dd class="col-sm-9">${{ saving.goal }}</dd>
+
+        <dt class="col-sm-3">Total Amount Saved:</dt>
+        <dd class="col-sm-9">${{ saving.total_amount_saved }}</dd>
+        <dt class="col-sm-3">Remaining:</dt>
+        <dd class="col-sm-9">${{ goal_left }}</dd>
+    </dl>
+</div>
+
+{% endblock content %}

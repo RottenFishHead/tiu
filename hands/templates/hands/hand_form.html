@@ -1,0 +1,239 @@
+{% extends 'poker/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<style>
+
+.card {
+  margin-bottom: 10px;
+}
+.hero {
+  background-color: #B6D6A8;
+}
+.villian {
+  background-color: #B66367;
+}
+
+.preflop {
+  background-color: #D5E4EE;
+
+}
+.flop {
+  background-color: #B7D8C1;
+
+}
+.turn {
+  background-color: #F1CB7D;
+
+}
+.river {
+  background-color: #F5B6AC;
+
+}
+</style>
+
+<div class='container bg-light'>
+  <h2>Add Hand</h2>
+
+  <form method="POST" class="post-form" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div hidden>
+    <p>{{ form.session|as_crispy_field }}</p>
+    <p>{{ form.hero|as_crispy_field }}</p>
+  </div> 
+    <p style="width: 50px;">{{ form.result|as_crispy_field }}</p>
+    <p>{{ form.effective|as_crispy_field }}</p>
+
+      <div class="col-sm-6 mb-3 mb-sm-4">
+    <div class="card hero w-75 ">
+      <div class="card-body">
+        <h5 class="card-title">Hero Hand</h5>
+      </div>
+      <ul class="list-group list-group-flush">
+        <div class="row m-3">
+          <div class="col-sm">
+        <li class="list-group-item mr-2" style="width: 130px;">{{ form.hero_card_1|as_crispy_field }}</li> 
+          </div>
+          <div class="col-sm">
+            <li class="list-group-item mr-2" style="width: 130px;">{{ form.hero_card_2|as_crispy_field }}</li>
+          </div>
+          </div>
+          <div class="row m-3">
+            <div class="col-sm">
+        <li class="list-group-item" style="width: 130px;">{{ form.hero_position|as_crispy_field }}</li>
+            </div>
+            <div class="col-sm">
+        <li class="list-group-item" style="width: 130px;">{{ form.hero_stack|as_crispy_field }}</li>
+            </div>
+      </ul>
+      
+    </div>
+  </div>
+  <div class="col-sm-6 mb-3 mb-sm-0">
+    <div class="card villian w-75" style="width: 18rem;">
+      <div class="card-body">
+        <h5 class="card-title">Villian Hand</h5>
+        <p class="card-text">{{ form.villian_image|as_crispy_field }} </p>
+      </div>
+      <ul class="list-group list-group-flush">
+        <div class="row m-3">
+          <div class="col-sm">
+        <li class="list-group-item mr-2" style="width: 130px;">{{ form.villian_card_1|as_crispy_field }}</li> 
+          </div>
+          <div class="col-sm">
+            <li class="list-group-item mr-2" style="width: 130px;">{{ form.villian_card_2|as_crispy_field }}</li>
+          </div>
+          </div>
+          <div class="row m-3">
+            <div class="col-sm">
+        <li class="list-group-item" style="width: 130px;">{{ form.villian_position|as_crispy_field }}</li>
+            </div>
+            <div class="col-sm">
+        <li class="list-group-item" style="width: 130px;">{{ form.villian_stack|as_crispy_field }}</li>
+            </div>
+      </ul>
+    
+    </div>
+  </div>
+<div class="col-sm-6 mb-3">
+<div class="card preflop w-75">
+  <div class="card-body">
+    <h5 class="card-title">Preflop Action</h5>
+    <p class="card-text">
+      <div class='row'>
+        <div class="col-sm">
+          <li class="list-group-item mr-2" style="width: 150px;">{{ form.preflop_action_h|as_crispy_field }}</li> 
+        </div>
+        <div class="col-sm">
+          <li class="list-group-item mr-2" style="width: 150px;">{{ form.preflop_bet_h|as_crispy_field }}</li> 
+        </div>
+        <div class="col-sm">
+          <li class="list-group-item mr-2" style="width: 150px;">{{ form.preflop_action_v|as_crispy_field }}</li> 
+        </div>
+        <div class="col-sm">
+          <li class="list-group-item mr-2" style="width: 150px;">{{ form.preflop_bet_v|as_crispy_field }}</li> 
+        </div>
+        <div class="col-sm">
+          <li class="list-group-item mr-2" style="width: 150px;">{{ form.preflop_callers|as_crispy_field }}</li> 
+        </div>
+      </div>
+    </p>
+  </div>
+</div>
+</div>
+  <div class="col-sm-6 mb-3 mb-sm-0">
+    <div class="card flop w-75">
+      <div class="card-body">
+        <h5 class="card-title">Flop Action</h5>
+        <ul class="list-group list-group-flush">
+          <div class="row">
+            <div class="col-sm">
+          <li class="list-group-item mr-2" style="width: 120px;">{{ form.flop1|as_crispy_field }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 120px;">{{ form.flop2|as_crispy_field }}</li>
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 120px;">{{ form.flop3|as_crispy_field }}</li>
+            </div>
+            </div>
+        </ul>
+        <p class="card-text">
+          <div class='row'>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.flop_action_h|as_crispy_field }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.flop_bet_h|as_crispy_field }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.flop_action_v|as_crispy_field }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.flop_bet_v|as_crispy_field }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.flop_callers|as_crispy_field }}</li> 
+            </div>
+          </div>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 mb-3 mb-sm-0">
+    <div class="card turn w-75">
+      <div class="card-body">
+        <h5 class="card-title">Turn Action</h5>
+        <ul class="list-group list-group-flush">
+          <div class="row">
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 120px;">{{ form.turn|as_crispy_field }}</li> 
+            </div>
+          </div>
+        </ul>
+        <p class="card-text">
+          <div class="row">
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.turn_action_h|as_crispy_field }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.turn_bet_h|as_crispy_field }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.turn_action_v|as_crispy_field }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.turn_bet_v|as_crispy_field }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.turn_callers|as_crispy_field }}</li> 
+            </div>
+          </div>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 mb-3 mb-sm-0">
+    <div class="card river w-75">
+      <div class="card-body">
+        <h5 class="card-title">River Action</h5>
+        <ul class="list-group list-group-flush">
+          <div class="row">
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 120px;">{{ form.river|as_crispy_field }}</li> 
+            </div>
+          </div>
+        </ul>
+        <p class="card-text">
+          <div class="row">
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.river_action_h|as_crispy_field }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.river_bet_h|as_crispy_field }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.river_action_v|as_crispy_field }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.river_bet_v|as_crispy_field }}</li> 
+            </div>
+            <div class="col-sm">
+              <li class="list-group-item mr-2" style="width: 150px;">{{ form.river_callers|as_crispy_field }}</li> 
+            </div>
+          </div>
+        </p>
+      </div>
+    </div>
+  </div>
+
+<h4 class="mt-4">Notes on Hand</h4>
+<p> {{ form.notes|as_crispy_field }} </p>
+<div class="mt-4">
+    <button type="submit">Save</button>
+</div>
+</div>
+  </form>
+
+{% endblock %}
