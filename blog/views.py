@@ -3,7 +3,7 @@ from .models import Post, Comment
 from django.core.paginator import Paginator, EmptyPage,\
                                   PageNotAnInteger
 from django.views.generic import ListView
-from .forms import EmailPostForm, CommentForm
+from .forms import EmailPostForm, CommentForm, PostForm
 from expenses.models import Expense, FixedExpense, Budget, Category
 from income.models import Income
 from poker.models import PokerSession
@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.db.models import Sum, F, DecimalField, Value
 from django.db.models.functions import Coalesce
 from decimal import Decimal
+from django.utils.text import slugify
 
 
 @login_required
@@ -201,3 +202,72 @@ def post_comment(request, post_id):
                            {'post': post,
                             'form': form,
                             'comment': comment})
+
+
+@login_required
+def post_create(request):
+    """View to create a new blog post"""
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return redirect('blog:post_detail', 
+                          year=post.publish.year,
+                          month=post.publish.month,
+                          day=post.publish.day,
+                          post=post.slug)
+    else:
+        form = PostForm()
+    
+    return render(request, 'blog/post/post_form.html', {
+        'form': form,
+        'title': 'Create New Post'
+    })
+
+
+@login_required
+def post_edit(request, post_id):
+    """View to edit an existing blog post"""
+    post = get_object_or_404(Post, id=post_id)
+    
+    # Only allow the author to edit
+    if post.author != request.user:
+        return redirect('blog:post_list')
+    
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES, instance=post)
+        if form.is_valid():
+            form.save()
+            return redirect('blog:post_detail',
+                          year=post.publish.year,
+                          month=post.publish.month,
+                          day=post.publish.day,
+                          post=post.slug)
+    else:
+        form = PostForm(instance=post)
+    
+    return render(request, 'blog/post/post_form.html', {
+        'form': form,
+        'post': post,
+        'title': 'Edit Post'
+    })
+
+
+@login_required
+def post_delete(request, post_id):
+    """View to delete a blog post"""
+    post = get_object_or_404(Post, id=post_id)
+    
+    # Only allow the author to delete
+    if post.author != request.user:
+        return redirect('blog:post_list')
+    
+    if request.method == 'POST':
+        post.delete()
+        return redirect('blog:post_list')
+    
+    return render(request, 'blog/post/post_confirm_delete.html', {
+        'post': post
+    })

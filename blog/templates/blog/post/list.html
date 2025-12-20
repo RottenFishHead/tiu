@@ -1,19 +1,107 @@
 {% extends "blog/base.html" %}
 
-{% block title %}My Blog{% endblock %}
+{% block title %}Blog Posts - This Is Us{% endblock %}
 
 {% block content %}
-  <h1>My Blog</h1>
+<div class="blog-header text-center mb-5">
+  <h1 class="display-3 mb-3">Our Blog</h1>
+  <p class="lead text-muted">Sharing our journey, one post at a time</p>
+</div>
+
+<div class="row">
   {% for post in posts %}
-    <h2>
-      <a href="{{ post.get_absolute_url }}">
-        {{ post.title }}
+  <div class="col-md-6 mb-4">
+    <article class="card h-100 shadow-sm post-card">
+      {% if post.image %}
+      <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 250px; object-fit: cover;">
+      {% else %}
+      <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+        <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+      </div>
+      {% endif %}
+      
+      <div class="card-body d-flex flex-column">
+        <h2 class="card-title h4">
+          <a href="{{ post.get_absolute_url }}" class="text-decoration-none text-dark">
+            {{ post.title }}
+          </a>
+        </h2>
+        
+        <p class="card-text text-muted small mb-2">
+          <i class="bi bi-calendar3"></i> {{ post.publish|date:"F d, Y" }} by 
+          <strong>{{ post.author }}</strong>
+        </p>
+        
+        <p class="card-text flex-grow-1">
+          {{ post.body|truncatewords:30|striptags }}
+        </p>
+        
+        <div class="mt-auto">
+          <a href="{{ post.get_absolute_url }}" class="btn btn-outline-primary btn-sm">
+            Read More <i class="bi bi-arrow-right"></i>
+          </a>
+          
+          {% if user.is_authenticated and post.author == user %}
+          <a href="{% url 'blog:post_edit' post.id %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-pencil"></i>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="alert alert-info text-center" role="alert">
+      <h4 class="alert-heading">No posts yet!</h4>
+      <p>Check back soon for new content.</p>
+      {% if user.is_authenticated %}
+      <a href="{% url 'blog:post_create' %}" class="btn btn-primary mt-2">
+        <i class="bi bi-plus-circle"></i> Create First Post
       </a>
-    </h2>
-    <p class="date">
-      Published {{ post.publish }} by {{ post.author }}
-    </p>
-    {{ post.body|truncatewords:30|linebreaks }}
+      {% endif %}
+    </div>
+  </div>
   {% endfor %}
-  {% include "pagination.html" with page=page_obj %}
+</div>
+
+{% include "pagination.html" with page=page_obj %}
+
+<style>
+  .blog-header h1 {
+    color: var(--dark-blue);
+    font-family: 'Playfair Display', serif;
+  }
+
+  .post-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  }
+
+  .post-card .card-title a {
+    color: var(--dark-blue);
+    transition: color 0.3s ease;
+  }
+
+  .post-card .card-title a:hover {
+    color: var(--primary-blue);
+  }
+
+  .btn-outline-primary {
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+  }
+
+  .btn-outline-primary:hover {
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+  }
+</style>
 {% endblock %}

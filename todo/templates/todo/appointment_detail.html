@@ -1,0 +1,33 @@
+{% extends 'todo/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+
+    
+      <h1>Task Detail</h1>
+      <a class='btn btn-primary m-4'  href="{% url 'todo:update-task' task.id %}" role='button'>Update</a>
+    <p><strong>Title:</strong> {{ task.title }}</p>
+    <p><strong>Category:</strong> {{ task.category }}</p>
+    <p><strong>Complete:</strong> {{ task.complete }}</p>
+    <p><div class="input-group date" id="datetimepicker1" data-target-input="nearest">Due:</strong> {{ task.due }}<div class="input-group-append" data-target="#datetimepicker1" data-toggle="datetimepicker">
+        <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+      </div>
+    </div></p>
+    <p><strong>Notes:</strong> {{ task.notes }}</p>
+   
+    <form action="{% url 'todo:delete-task' task.id %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger m-4">Delete</button>
+    </form>
+
+    <script>
+        $(function () {
+          $("#datetimepicker1").datetimepicker({
+            format: 'DD/MM/YYYY HH:mm',
+          });
+        });
+      </script>
+{% endblock content %}
+
+

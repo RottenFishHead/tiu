@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
+from django.http import JsonResponse
+import json
 from .models import Bill, Account, BillPayment, WorkEntry, MileageEntry
 from .forms import BillForm, PayBillForm, WorkEntryForm, MileageEntryForm
 from datetime import timedelta, date
@@ -322,6 +324,32 @@ def time_entry_create(request):
     return render(request, "john/time_form.html", {"form": form})
 
 
+def time_entry_edit(request, pk):
+    """
+    Edit an existing work entry.
+    """
+    entry = WorkEntry.objects.get(pk=pk)
+    if request.method == "POST":
+        form = WorkEntryForm(request.POST, instance=entry)
+        if form.is_valid():
+            form.save()
+            return redirect("john:time_entries")
+    else:
+        form = WorkEntryForm(instance=entry)
+    return render(request, "john/time_form.html", {"form": form, "entry": entry})
+
+
+def time_entry_delete(request, pk):
+    """
+    Delete a work entry.
+    """
+    entry = WorkEntry.objects.get(pk=pk)
+    if request.method == "POST":
+        entry.delete()
+        return redirect("john:time_entries")
+    return render(request, "john/time_confirm_delete.html", {"entry": entry})
+
+
 def mileage_entries(request):
     """
     List mileage entries with optional month/year filter and totals.
@@ -372,6 +400,78 @@ def mileage_entry_create(request):
         )
 
     return render(request, "john/mileage_form.html", {"form": form})
+
+
+def mileage_entry_edit(request, pk):
+    """
+    Edit an existing mileage entry.
+    """
+    entry = MileageEntry.objects.get(pk=pk)
+    if request.method == "POST":
+        form = MileageEntryForm(request.POST, instance=entry)
+        if form.is_valid():
+            form.save()
+            return redirect("john:mileage_entries")
+    else:
+        form = MileageEntryForm(instance=entry)
+    return render(request, "john/mileage_form.html", {"form": form, "entry": entry})
+
+
+def mileage_entry_delete(request, pk):
+    """
+    Delete a mileage entry.
+    """
+    entry = MileageEntry.objects.get(pk=pk)
+    if request.method == "POST":
+        entry.delete()
+        return redirect("john:mileage_entries")
+    return render(request, "john/mileage_confirm_delete.html", {"entry": entry})
+
+
+def export_john_data(request):
+    """
+    Export all John app data to JSON format for PostgreSQL import.
+    """
+    from django.core.serializers import serialize
+    
+    data = {
+        'accounts': json.loads(serialize('json', Account.objects.all())),
+        'bills': json.loads(serialize('json', Bill.objects.all())),
+        'bill_payments': json.loads(serialize('json', BillPayment.objects.all())),
+        'work_entries': json.loads(serialize('json', WorkEntry.objects.all())),
+        'mileage_entries': json.loads(serialize('json', MileageEntry.objects.all())),
+        'account_withdrawals': json.loads(serialize('json', AccountWithdrawal.objects.all())),
+    }
+    
+    response = JsonResponse(data, json_dumps_params={'indent': 2})
+    response['Content-Disposition'] = f'attachment; filename="john_data_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json"'
+    return response
+
+
+def export_work_entries_json(request):
+    """
+    Export only work entries to JSON.
+    """
+    from django.core.serializers import serialize
+    entries = WorkEntry.objects.all().order_by('-date')
+    data = json.loads(serialize('json', entries))
+    
+    response = JsonResponse(data, safe=False, json_dumps_params={'indent': 2})
+    response['Content-Disposition'] = f'attachment; filename="work_entries_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json"'
+    return response
+
+
+def export_mileage_entries_json(request):
+    """
+    Export only mileage entries to JSON.
+    """
+    from django.core.serializers import serialize
+    entries = MileageEntry.objects.all().order_by('-date')
+    data = json.loads(serialize('json', entries))
+    
+    response = JsonResponse(data, safe=False, json_dumps_params={'indent': 2})
+    response['Content-Disposition'] = f'attachment; filename="mileage_entries_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json"'
+    return response
 
 
 def monthly_summary(request):
@@ -516,3 +616,53 @@ def monthly_summary(request):
         "grand_total_reimbursement": grand_total_reimbursement,
     }
     return render(request, "john/monthly_summary.html", context)
+
+
+def export_john_data(request):
+    """
+    Export all John app data to JSON format for PostgreSQL import.
+    """
+    from django.core.serializers import serialize
+    from datetime import datetime
+    
+    data = {
+        'accounts': json.loads(serialize('json', Account.objects.all())),
+        'bills': json.loads(serialize('json', Bill.objects.all())),
+        'bill_payments': json.loads(serialize('json', BillPayment.objects.all())),
+        'work_entries': json.loads(serialize('json', WorkEntry.objects.all())),
+        'mileage_entries': json.loads(serialize('json', MileageEntry.objects.all())),
+    }
+    
+    response = JsonResponse(data, json_dumps_params={'indent': 2})
+    response['Content-Disposition'] = f'attachment; filename="john_data_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json"'
+    return response
+
+
+def export_work_entries_json(request):
+    """
+    Export only work entries to JSON.
+    """
+    from django.core.serializers import serialize
+    from datetime import datetime
+    
+    entries = WorkEntry.objects.all().order_by('-date')
+    data = json.loads(serialize('json', entries))
+    
+    response = JsonResponse(data, safe=False, json_dumps_params={'indent': 2})
+    response['Content-Disposition'] = f'attachment; filename="work_entries_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json"'
+    return response
+
+
+def export_mileage_entries_json(request):
+    """
+    Export only mileage entries to JSON.
+    """
+    from django.core.serializers import serialize
+    from datetime import datetime
+    
+    entries = MileageEntry.objects.all().order_by('-date')
+    data = json.loads(serialize('json', entries))
+    
+    response = JsonResponse(data, safe=False, json_dumps_params={'indent': 2})
+    response['Content-Disposition'] = f'attachment; filename="mileage_entries_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json"'
+    return response

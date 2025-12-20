@@ -362,10 +362,15 @@ def debt_list(request):
 @login_required(login_url='/account/login/')
 def debt_details(request, debt_id):
     debt = get_object_or_404(Debt, pk=debt_id)
-    debt_left = (debt.owed - debt.total_amount_paid)
+    debt_left = debt.remaining_balance
+    
+    # Get John app earnings data if this is a van-related debt
+    john_earnings = debt.remaining_after_john_earnings()
+    
     context = {
         'debt': debt,
-        'debt_left': debt_left
+        'debt_left': debt_left,
+        'john_earnings': john_earnings,
     }
     return render(request, 'expenses/debt_details.html', context)
 

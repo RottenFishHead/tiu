@@ -1,0 +1,125 @@
+{% extends 'todo/base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="display-5">
+                <i class="bi bi-list-task"></i> All Tasks
+            </h1>
+            <a href="{% url 'todo:create-task' %}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Add New Task
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Incomplete Tasks -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h3 class="mb-0"><i class="bi bi-hourglass-split"></i> Incomplete Tasks ({{ incomplete_tasks.count }})</h3>
+            </div>
+            <div class="card-body">
+                {% if incomplete_tasks %}
+                    {% for task in incomplete_tasks %}
+                    <div class="card mb-3 border-warning">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="card-title">{{ task.title }}</h5>
+                                    {% if task.due %}
+                                    <p class="text-muted mb-1">
+                                        <i class="bi bi-calendar-event"></i> Due: {{ task.due|date:"F d, Y" }}
+                                    </p>
+                                    {% endif %}
+                                    {% if task.notes %}
+                                    <p class="card-text">{{ task.notes|truncatewords:20 }}</p>
+                                    {% endif %}
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock"></i> Created {{ task.when_created }}
+                                    </small>
+                                </div>
+                                <div class="btn-group-vertical" role="group">
+                                    <a href="{% url 'todo:toggle-task' task.id %}" class="btn btn-sm btn-success">
+                                        <i class="bi bi-check-circle"></i> Complete
+                                    </a>
+                                    <a href="{% url 'todo:update-task' task.id %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                    <a href="{% url 'todo:delete-task' task.id %}" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> No incomplete tasks. Great job!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Completed Tasks -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0"><i class="bi bi-check-circle-fill"></i> Completed Tasks ({{ completed_tasks.count }})</h3>
+            </div>
+            <div class="card-body">
+                {% if completed_tasks %}
+                    {% for task in completed_tasks %}
+                    <div class="card mb-3 border-success">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="text-muted">
+                                    <h5 class="card-title text-decoration-line-through">{{ task.title }}</h5>
+                                    {% if task.due %}
+                                    <p class="mb-1">
+                                        <i class="bi bi-calendar-check"></i> Was due: {{ task.due|date:"F d, Y" }}
+                                    </p>
+                                    {% endif %}
+                                    {% if task.notes %}
+                                    <p class="card-text">{{ task.notes|truncatewords:20 }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="btn-group-vertical" role="group">
+                                    <a href="{% url 'todo:toggle-task' task.id %}" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Undo
+                                    </a>
+                                    <a href="{% url 'todo:delete-task' task.id %}" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> No completed tasks yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 0.5rem;
+    }
+    
+    .card-header {
+        border-radius: 0.5rem 0.5rem 0 0 !important;
+    }
+</style>
+
+{% endblock content %}

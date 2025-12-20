@@ -87,6 +87,39 @@ class Debt(models.Model):
     def total_amount_paid(self):
         return sum(payment.amount_paid for payment in self.payments.all())
     
+    @property
+    def remaining_balance(self):
+        """Calculate remaining balance after payments."""
+        return self.owed - self.total_amount_paid
+    
+    def remaining_after_john_earnings(self):
+        """For debts with 'van' in name, subtract John app earnings from remaining balance."""
+        if 'van' not in self.name.lower():
+            return None  # Only applies to van-related debts
+        
+        from john.models import WorkEntry, MileageEntry
+        from decimal import Decimal
+        
+        # Get total from work entries
+        work_total = WorkEntry.objects.aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0.00')
+        
+        # Get total from mileage entries
+        mileage_total = MileageEntry.objects.aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0.00')
+        
+        total_john_earnings = work_total + mileage_total
+        remaining = self.remaining_balance - total_john_earnings
+        
+        return {
+            'work_total': work_total,
+            'mileage_total': mileage_total,
+            'total_john_earnings': total_john_earnings,
+            'remaining': remaining
+        }
+    
 class Savings(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()

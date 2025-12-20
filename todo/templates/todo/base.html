@@ -3,6 +3,7 @@
 <html lang="en">
   <head>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 <script src="https://unpkg.com/htmx.org@1.7.0/dist/htmx.js"></script>
 </head>
 <body>
@@ -33,8 +34,14 @@
                         To Do
                       </a>        
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="{% url 'todo:task-list' %}">To Do List</a></li>
-                        <li><a class="dropdown-item" href="{% url 'todo:create-task' %}">Add Task</a></li>
+                        <li><a class="dropdown-item" href="{% url 'todo:dashboard' %}"><i class="bi bi-house-door"></i> Dashboard</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'todo:task-list' %}"><i class="bi bi-list-task"></i> All Tasks</a></li>
+                        <li><a class="dropdown-item" href="{% url 'todo:create-task' %}"><i class="bi bi-plus-circle"></i> Add Task</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'todo:appointment-list' %}"><i class="bi bi-calendar-event"></i> All Appointments</a></li>
+                        <li><a class="dropdown-item" href="{% url 'todo:create-appointment' %}"><i class="bi bi-plus-circle"></i> Add Appointment</a></li>
+                        <li><a class="dropdown-item" href="{% url 'todo:calendar' %}"><i class="bi bi-calendar3"></i> Calendar</a></li>
                     </ul>
                   </li>
                 </ul>

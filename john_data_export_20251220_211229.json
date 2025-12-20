@@ -1,0 +1,277 @@
+{
+  "accounts": [
+    {
+      "model": "john.account",
+      "pk": 3,
+      "fields": {
+        "name": "John Checking",
+        "institution": "Wells Fargo",
+        "number_last4": "0000",
+        "is_active": true
+      }
+    },
+    {
+      "model": "john.account",
+      "pk": 2,
+      "fields": {
+        "name": "John Sonnenberg Trust",
+        "institution": "Chase",
+        "number_last4": "8509",
+        "is_active": true
+      }
+    },
+    {
+      "model": "john.account",
+      "pk": 1,
+      "fields": {
+        "name": "SONN",
+        "institution": "Chase",
+        "number_last4": "1033",
+        "is_active": true
+      }
+    }
+  ],
+  "bills": [
+    {
+      "model": "john.bill",
+      "pk": 7,
+      "fields": {
+        "name": "Guild Mortgage",
+        "amount": "3070.70",
+        "due_day": 1,
+        "is_auto_pay": false,
+        "account": 3,
+        "notes": "",
+        "active": true,
+        "created_at": "2025-12-15T20:58:58.159Z",
+        "updated_at": "2025-12-15T20:58:58.160Z"
+      }
+    },
+    {
+      "model": "john.bill",
+      "pk": 5,
+      "fields": {
+        "name": "SDTTC",
+        "amount": "4958.21",
+        "due_day": 1,
+        "is_auto_pay": false,
+        "account": 1,
+        "notes": "",
+        "active": true,
+        "created_at": "2025-12-15T20:48:36.027Z",
+        "updated_at": "2025-12-15T20:48:36.027Z"
+      }
+    },
+    {
+      "model": "john.bill",
+      "pk": 6,
+      "fields": {
+        "name": "SDTTC",
+        "amount": "4507.47",
+        "due_day": 1,
+        "is_auto_pay": false,
+        "account": 1,
+        "notes": "Property Taxes on Ridgeline - Due Feb. 1st",
+        "active": true,
+        "created_at": "2025-12-15T20:54:32.279Z",
+        "updated_at": "2025-12-15T20:54:32.279Z"
+      }
+    },
+    {
+      "model": "john.bill",
+      "pk": 4,
+      "fields": {
+        "name": "AT&T",
+        "amount": "236.08",
+        "due_day": 11,
+        "is_auto_pay": false,
+        "account": 1,
+        "notes": "",
+        "active": true,
+        "created_at": "2025-12-15T20:32:15.312Z",
+        "updated_at": "2025-12-15T20:32:15.312Z"
+      }
+    },
+    {
+      "model": "john.bill",
+      "pk": 1,
+      "fields": {
+        "name": "Citi",
+        "amount": "1299.50",
+        "due_day": 18,
+        "is_auto_pay": false,
+        "account": 3,
+        "notes": "Also received past due warning letter",
+        "active": true,
+        "created_at": "2025-12-15T19:22:42.645Z",
+        "updated_at": "2025-12-15T19:22:42.645Z"
+      }
+    },
+    {
+      "model": "john.bill",
+      "pk": 3,
+      "fields": {
+        "name": "EDCO",
+        "amount": "59.70",
+        "due_day": 20,
+        "is_auto_pay": false,
+        "account": 1,
+        "notes": "",
+        "active": true,
+        "created_at": "2025-12-15T20:13:34.652Z",
+        "updated_at": "2025-12-15T20:13:34.652Z"
+      }
+    },
+    {
+      "model": "john.bill",
+      "pk": 2,
+      "fields": {
+        "name": "Frontier",
+        "amount": "29.00",
+        "due_day": 20,
+        "is_auto_pay": false,
+        "account": 1,
+        "notes": "",
+        "active": true,
+        "created_at": "2025-12-15T19:30:42.056Z",
+        "updated_at": "2025-12-15T19:30:42.056Z"
+      }
+    },
+    {
+      "model": "john.bill",
+      "pk": 9,
+      "fields": {
+        "name": "Lincoln Benefit Life",
+        "amount": "1095.00",
+        "due_day": 20,
+        "is_auto_pay": false,
+        "account": 1,
+        "notes": "Due Quarterly...next Jan 1st?",
+        "active": true,
+        "created_at": "2025-12-15T22:14:17.753Z",
+        "updated_at": "2025-12-15T22:14:17.753Z"
+      }
+    },
+    {
+      "model": "john.bill",
+      "pk": 8,
+      "fields": {
+        "name": "Vista Irrigation",
+        "amount": "285.96",
+        "due_day": 28,
+        "is_auto_pay": false,
+        "account": 3,
+        "notes": "",
+        "active": true,
+        "created_at": "2025-12-15T21:03:04.598Z",
+        "updated_at": "2025-12-15T21:03:04.598Z"
+      }
+    }
+  ],
+  "bill_payments": [
+    {
+      "model": "john.billpayment",
+      "pk": 8,
+      "fields": {
+        "bill": 7,
+        "account": 3,
+        "amount": "3070.70",
+        "date_paid": "2025-12-15",
+        "receipt_image": "",
+        "notes": "",
+        "created_at": "2025-12-15T20:59:03.472Z",
+        "updated_at": "2025-12-15T20:59:03.472Z"
+      }
+    },
+    {
+      "model": "john.billpayment",
+      "pk": 7,
+      "fields": {
+        "bill": 5,
+        "account": 1,
+        "amount": "5066.79",
+        "date_paid": "2025-12-15",
+        "receipt_image": "",
+        "notes": "",
+        "created_at": "2025-12-15T20:53:40.013Z",
+        "updated_at": "2025-12-15T20:53:40.013Z"
+      }
+    },
+    {
+      "model": "john.billpayment",
+      "pk": 6,
+      "fields": {
+        "bill": 4,
+        "account": 1,
+        "amount": "233.20",
+        "date_paid": "2025-12-15",
+        "receipt_image": "",
+        "notes": "",
+        "created_at": "2025-12-15T20:46:56.843Z",
+        "updated_at": "2025-12-15T20:46:56.844Z"
+      }
+    },
+    {
+      "model": "john.billpayment",
+      "pk": 3,
+      "fields": {
+        "bill": 3,
+        "account": 1,
+        "amount": "59.70",
+        "date_paid": "2025-12-15",
+        "receipt_image": "",
+        "notes": "",
+        "created_at": "2025-12-15T20:13:40.846Z",
+        "updated_at": "2025-12-15T20:13:40.846Z"
+      }
+    },
+    {
+      "model": "john.billpayment",
+      "pk": 2,
+      "fields": {
+        "bill": 2,
+        "account": 1,
+        "amount": "1576.82",
+        "date_paid": "2025-12-15",
+        "receipt_image": "",
+        "notes": "",
+        "created_at": "2025-12-15T19:47:30.023Z",
+        "updated_at": "2025-12-15T19:47:30.023Z"
+      }
+    },
+    {
+      "model": "john.billpayment",
+      "pk": 1,
+      "fields": {
+        "bill": 1,
+        "account": 3,
+        "amount": "1299.50",
+        "date_paid": "2025-12-15",
+        "receipt_image": "",
+        "notes": "",
+        "created_at": "2025-12-15T19:27:38.466Z",
+        "updated_at": "2025-12-15T19:27:38.466Z"
+      }
+    }
+  ],
+  "account_withdrawals": [],
+  "work_entries": [
+    {
+      "model": "john.workentry",
+      "pk": 1,
+      "fields": {
+        "date": "2025-12-20",
+        "description": "Headed to Temecula",
+        "start_time": "11:45:00",
+        "end_time": null,
+        "hours": null,
+        "hourly_rate": "30.00",
+        "amount": null,
+        "notes": "",
+        "created_at": "2025-12-20T19:13:30.817Z",
+        "updated_at": "2025-12-20T19:13:30.817Z"
+      }
+    }
+  ],
+  "mileage_entries": []
+}

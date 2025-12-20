@@ -14,8 +14,17 @@ urlpatterns = [
     path("bills/<int:pk>/pay/", views.pay_bill, name="pay_bill"),
     path("time/", views.time_entries, name="time_entries"),
     path("time/new/", views.time_entry_create, name="time_entry_create"),
+    path("time/<int:pk>/edit/", views.time_entry_edit, name="time_entry_edit"),
+    path("time/<int:pk>/delete/", views.time_entry_delete, name="time_entry_delete"),
     path("mileage/", views.mileage_entries, name="mileage_entries"),
     path("mileage/new/", views.mileage_entry_create, name="mileage_entry_create"),
+    path("mileage/<int:pk>/edit/", views.mileage_entry_edit, name="mileage_entry_edit"),
+    path("mileage/<int:pk>/delete/", views.mileage_entry_delete, name="mileage_entry_delete"),
     path("reports/summary/", views.monthly_summary, name="monthly_summary"),
+    
+    # Export URLs
+    path("export/all/", views.export_john_data, name="export_all"),
+    path("export/work/", views.export_work_entries_json, name="export_work"),
+    path("export/mileage/", views.export_mileage_entries_json, name="export_mileage"),
 ]
 

@@ -46,18 +46,30 @@ class PayBillForm(BootstrapFormMixin, forms.ModelForm):
 class WorkEntryForm(BootstrapFormMixin, forms.ModelForm):
     class Meta:
         model = WorkEntry
-        fields = ["date", "hours", "hourly_rate", "description", "notes"]
+        fields = ["date", "start_time", "end_time", "hours", "hourly_rate", "description", "notes"]
         widgets = {
             "date": forms.DateInput(attrs={"type": "date"}),
+            "start_time": forms.TimeInput(attrs={"type": "time"}),
+            "end_time": forms.TimeInput(attrs={"type": "time"}),
             "notes": forms.Textarea(attrs={"rows": 3}),
+        }
+        help_texts = {
+            "start_time": "Enter start time to auto-calculate hours.",
+            "end_time": "Enter end time to auto-calculate hours.",
+            "hours": "Will be calculated from start/end time, or enter manually.",
         }
 
 
 class MileageEntryForm(BootstrapFormMixin, forms.ModelForm):
     class Meta:
         model = MileageEntry
-        fields = ["date", "miles", "rate_per_mile", "description", "notes"]
+        fields = ["date", "starting_mileage", "ending_mileage", "miles", "rate_per_mile", "description", "notes"]
         widgets = {
             "date": forms.DateInput(attrs={"type": "date"}),
             "notes": forms.Textarea(attrs={"rows": 3}),
+        }
+        help_texts = {
+            "starting_mileage": "Enter starting odometer reading to auto-calculate miles.",
+            "ending_mileage": "Enter ending odometer reading to auto-calculate miles.",
+            "miles": "Will be calculated from start/end mileage, or enter manually.",
         }

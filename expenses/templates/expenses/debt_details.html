@@ -16,9 +16,31 @@
 
         <dt class="col-sm-3">Total Amount Paid:</dt>
         <dd class="col-sm-9">${{ debt.total_amount_paid }}</dd>
+        
         <dt class="col-sm-3">Remaining:</dt>
         <dd class="col-sm-9">${{ debt_left }}</dd>
+        
+        {% if john_earnings %}
+        <dt class="col-sm-3 mt-3"><strong>John App Earnings:</strong></dt>
+        <dd class="col-sm-9 mt-3"></dd>
+        
+        <dt class="col-sm-4 ps-4">Work Hours Total:</dt>
+        <dd class="col-sm-8">${{ john_earnings.work_total|floatformat:2 }}</dd>
+        
+        <dt class="col-sm-4 ps-4">Mileage Total:</dt>
+        <dd class="col-sm-8">${{ john_earnings.mileage_total|floatformat:2 }}</dd>
+        
+        <dt class="col-sm-4 ps-4">Total Earned:</dt>
+        <dd class="col-sm-8"><strong>${{ john_earnings.total_john_earnings|floatformat:2 }}</strong></dd>
+        
+        <dt class="col-sm-3 mt-2"><strong>Balance After Earnings:</strong></dt>
+        <dd class="col-sm-9 mt-2">
+            <span class="badge {% if john_earnings.remaining <= 0 %}bg-success{% else %}bg-warning{% endif %} fs-5">
+                ${{ john_earnings.remaining|floatformat:2 }}
+            </span>
+        </dd>
+        {% endif %}
     </dl>
 </div>
-<p><a href="{% url 'expenses:create_payment' debt_id=debt.id %}" class="btn btn-primary">Edit</a></p>
+<p><a href="{% url 'expenses:create_payment' debt_id=debt.id %}" class="btn btn-primary">Make Payment</a></p>
 {% endblock content %}

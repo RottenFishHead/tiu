@@ -74,20 +74,33 @@
             <thead class="table-light">
               <tr>
                 <th>Date</th>
+                <th>Start Time</th>
+                <th>End Time</th>
                 <th>Hours</th>
                 <th>Rate</th>
                 <th>Amount</th>
                 <th>Description</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {% for e in entries %}
                 <tr>
                   <td>{{ e.date }}</td>
+                  <td>{% if e.start_time %}{{ e.start_time|time:"g:i A" }}{% else %}-{% endif %}</td>
+                  <td>{% if e.end_time %}{{ e.end_time|time:"g:i A" }}{% else %}-{% endif %}</td>
                   <td>{{ e.hours|floatformat:2 }}</td>
                   <td>${{ e.hourly_rate|floatformat:2 }}</td>
                   <td>${{ e.amount|floatformat:2 }}</td>
                   <td>{{ e.description }}</td>
+                  <td>
+                    <a href="{% url 'john:time_entry_edit' e.pk %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'john:time_entry_delete' e.pk %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                      <i class="bi bi-trash"></i>
+                    </a>
+                  </td>
                 </tr>
               {% endfor %}
             </tbody>

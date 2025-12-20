@@ -1,0 +1,114 @@
+{% extends "blog/base.html" %}
+
+{% block title %}{{ title }} - This Is Us Blog{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary-custom text-white">
+                <h2 class="mb-0">{{ title }}</h2>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-danger mt-1">{{ form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.slug.id_for_label }}" class="form-label">
+                            Slug <small class="text-muted">(URL-friendly version of title)</small>
+                        </label>
+                        {{ form.slug }}
+                        {% if form.slug.errors %}
+                            <div class="text-danger mt-1">{{ form.slug.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            Example: "my-first-post" or "summer-vacation-2025"
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.body.id_for_label }}" class="form-label">Content</label>
+                        {{ form.body }}
+                        {% if form.body.errors %}
+                            <div class="text-danger mt-1">{{ form.body.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.image.id_for_label }}" class="form-label">
+                            Image <small class="text-muted">(Optional)</small>
+                        </label>
+                        {{ form.image }}
+                        {% if form.image.errors %}
+                            <div class="text-danger mt-1">{{ form.image.errors }}</div>
+                        {% endif %}
+                        {% if post.image %}
+                            <div class="mt-2">
+                                <p class="mb-1">Current image:</p>
+                                <img src="{{ post.image.url }}" alt="{{ post.title }}" class="img-thumbnail" style="max-width: 200px;">
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <div class="text-danger mt-1">{{ form.status.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {% if post %}Update Post{% else %}Create Post{% endif %}
+                        </button>
+                        <a href="{% url 'blog:post_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-primary-custom {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+    }
+    
+    .card {
+        border: none;
+        border-radius: 0.5rem;
+    }
+    
+    .card-header {
+        border-radius: 0.5rem 0.5rem 0 0 !important;
+        padding: 1.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: var(--dark-blue);
+    }
+    
+    .btn-primary {
+        background: var(--primary-blue);
+        border-color: var(--primary-blue);
+    }
+    
+    .btn-primary:hover {
+        background: var(--dark-blue);
+        border-color: var(--dark-blue);
+    }
+</style>
+
+{% endblock %}

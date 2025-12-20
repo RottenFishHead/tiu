@@ -2,8 +2,15 @@ from django.db import models
 from django.utils import timezone
 import math 
 
-# Task Model
+class Category(models.Model):
+    name = models.CharField(max_length=200)
+    
+    def __str__(self):
+        return self.name
+    
+# Create your models here.
 class Task(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     complete = models.BooleanField(default=False)
     due = models.DateField(blank=True, null=True)
@@ -27,6 +34,8 @@ class Task(models.Model):
             else:
                 return str(seconds) + " seconds ago"
 
+            
+
         if diff.days == 0 and diff.seconds >= 60 and diff.seconds < 3600:
             minutes= math.floor(diff.seconds/60)
 
@@ -35,6 +44,8 @@ class Task(models.Model):
             
             else:
                 return str(minutes) + " minutes ago"
+
+
 
         if diff.days == 0 and diff.seconds >= 3600 and diff.seconds < 86400:
             hours= math.floor(diff.seconds/3600)
@@ -45,6 +56,7 @@ class Task(models.Model):
             else:
                 return str(hours) + " hours ago"
 
+        # 1 day to 30 days
         if diff.days >= 1 and diff.days < 30:
             days= diff.days
         
@@ -56,12 +68,14 @@ class Task(models.Model):
 
         if diff.days >= 30 and diff.days < 365:
             months= math.floor(diff.days/30)
+            
 
             if months == 1:
                 return str(months) + " month ago"
 
             else:
                 return str(months) + " months ago"
+
 
         if diff.days >= 365:
             years= math.floor(diff.days/365)
@@ -70,49 +84,4 @@ class Task(models.Model):
                 return str(years) + " year ago"
 
             else:
-                return str(years) + " years ago"
-
-
-# Appointment Model
-class Appointment(models.Model):
-    title = models.CharField(max_length=200)
-    complete = models.BooleanField(default=False)
-    date = models.DateField()
-    time = models.TimeField(blank=True, null=True)
-    location = models.CharField(max_length=300, blank=True, null=True)
-    notes = models.TextField(max_length=500, blank=True, null=True)
-    created = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['date', 'time']
-
-    def __str__(self):
-        return f"{self.title} - {self.date}"
-    
-    def when_created(self):
-        now = timezone.now()
-        diff = now - self.created
-
-        if diff.days == 0 and diff.seconds >= 0 and diff.seconds < 60:
-            seconds = diff.seconds
-            return str(seconds) + (" second ago" if seconds == 1 else " seconds ago")
-
-        if diff.days == 0 and diff.seconds >= 60 and diff.seconds < 3600:
-            minutes = math.floor(diff.seconds/60)
-            return str(minutes) + (" minute ago" if minutes == 1 else " minutes ago")
-
-        if diff.days == 0 and diff.seconds >= 3600 and diff.seconds < 86400:
-            hours = math.floor(diff.seconds/3600)
-            return str(hours) + (" hour ago" if hours == 1 else " hours ago")
-
-        if diff.days >= 1 and diff.days < 30:
-            days = diff.days
-            return str(days) + (" day ago" if days == 1 else " days ago")
-
-        if diff.days >= 30 and diff.days < 365:
-            months = math.floor(diff.days/30)
-            return str(months) + (" month ago" if months == 1 else " months ago")
-
-        if diff.days >= 365:
-            years = math.floor(diff.days/365)
-            return str(years) + (" year ago" if years == 1 else " years ago")
+                return str(years) + " years ago"   

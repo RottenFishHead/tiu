@@ -176,7 +176,15 @@ class WorkEntry(models.Model):
     """
     date = models.DateField(default=timezone.localdate)
     description = models.CharField(max_length=255, blank=True)
-    hours = models.DecimalField(max_digits=6, decimal_places=2)
+    start_time = models.TimeField(null=True, blank=True, help_text="Start time of work.")
+    end_time = models.TimeField(null=True, blank=True, help_text="End time of work.")
+    hours = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Total hours worked (calculated or manual).",
+    )
     hourly_rate = models.DecimalField(
         max_digits=6,
         decimal_places=2,
@@ -186,6 +194,8 @@ class WorkEntry(models.Model):
     amount = models.DecimalField(
         max_digits=8,
         decimal_places=2,
+        null=True,
+        blank=True,
         editable=False,
         help_text="Computed reimbursement amount (hours × rate).",
     )
@@ -200,6 +210,17 @@ class WorkEntry(models.Model):
         verbose_name_plural = "Work entries"
 
     def save(self, *args, **kwargs):
+        # Calculate hours from start/end time if both are provided
+        if self.start_time and self.end_time:
+            from datetime import datetime, timedelta
+            start = datetime.combine(self.date, self.start_time)
+            end = datetime.combine(self.date, self.end_time)
+            # Handle overnight shifts
+            if end < start:
+                end += timedelta(days=1)
+            delta = end - start
+            self.hours = Decimal(str(delta.total_seconds() / 3600)).quantize(Decimal("0.01"))
+        
         if self.hours is not None and self.hourly_rate is not None:
             self.amount = (self.hours * self.hourly_rate).quantize(Decimal("0.01"))
         super().save(*args, **kwargs)
@@ -215,16 +236,38 @@ class MileageEntry(models.Model):
     """
     date = models.DateField(default=timezone.localdate)
     description = models.CharField(max_length=255, blank=True)
-    miles = models.DecimalField(max_digits=7, decimal_places=2)
+    starting_mileage = models.DecimalField(
+        max_digits=7,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Starting odometer reading.",
+    )
+    ending_mileage = models.DecimalField(
+        max_digits=7,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Ending odometer reading.",
+    )
+    miles = models.DecimalField(
+        max_digits=7,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Total miles driven (calculated or manual).",
+    )
     rate_per_mile = models.DecimalField(
         max_digits=5,
         decimal_places=3,
-        default=Decimal("0.655"),  # adjust as you like
+        default=Decimal("0.210"),
         help_text="Reimbursement rate per mile.",
     )
     amount = models.DecimalField(
         max_digits=8,
         decimal_places=2,
+        null=True,
+        blank=True,
         editable=False,
         help_text="Computed reimbursement amount (miles × rate).",
     )
@@ -239,6 +282,10 @@ class MileageEntry(models.Model):
         verbose_name_plural = "Mileage entries"
 
     def save(self, *args, **kwargs):
+        # Calculate miles from starting/ending mileage if both are provided
+        if self.starting_mileage is not None and self.ending_mileage is not None:
+            self.miles = (self.ending_mileage - self.starting_mileage).quantize(Decimal("0.01"))
+        
         if self.miles is not None and self.rate_per_mile is not None:
             self.amount = (self.miles * self.rate_per_mile).quantize(Decimal("0.01"))
         super().save(*args, **kwargs)

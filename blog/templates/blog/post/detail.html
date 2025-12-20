@@ -1,33 +1,103 @@
 {% extends "blog/base.html" %}
 
-{% block title %}{{ post.title }}{% endblock %}
+{% block title %}{{ post.title }} - This Is Us Blog{% endblock %}
 
 {% block content %}
-  <h1>{{ post.title }}</h1>
-  <p class="date">
-    Published {{ post.publish }} by {{ post.author }}
-  </p>
-  {{ post.body|linebreaks }}
-  <p>
-    <a href="{% url "blog:post_share" post.id %}">
-      Share this post
-    </a>
-  </p>
-  {% with comments.count as total_comments %}
-    <h2>
-      {{ total_comments }} comment{{ total_comments|pluralize }}
-    </h2>
-  {% endwith %}
-  {% for comment in comments %}
-    <div class="comment">
-      <p class="info">
-        Comment {{ forloop.counter }} by {{ comment.name }}
-        {{ comment.created }}
-      </p>
-      {{ comment.body|linebreaks }}
+<article class="blog-post">
+  <header class="post-header mb-4">
+    <h1 class="display-4 mb-3">{{ post.title }}</h1>
+    <div class="post-meta text-muted mb-3">
+      <i class="bi bi-calendar3"></i> Published {{ post.publish|date:"F d, Y" }} by 
+      <strong>{{ post.author }}</strong>
     </div>
-  {% empty %}
-    <p>There are no comments yet.</p>
-  {% endfor %}
-  {% include "blog/post/includes/comment_form.html" %}
+    
+    {% if user.is_authenticated and post.author == user %}
+    <div class="post-actions mb-3">
+      <a href="{% url 'blog:post_edit' post.id %}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-pencil"></i> Edit
+      </a>
+      <a href="{% url 'blog:post_delete' post.id %}" class="btn btn-sm btn-outline-danger">
+        <i class="bi bi-trash"></i> Delete
+      </a>
+    </div>
+    {% endif %}
+  </header>
+
+  {% if post.image %}
+  <div class="post-image mb-4">
+    <img src="{{ post.image.url }}" alt="{{ post.title }}" class="img-fluid rounded shadow-sm">
+  </div>
+  {% endif %}
+
+  <div class="post-content mb-5">
+    {{ post.body|linebreaks }}
+  </div>
+
+  <div class="post-footer mb-4">
+    <a href="{% url 'blog:post_share' post.id %}" class="btn btn-outline-secondary">
+      <i class="bi bi-share"></i> Share this post
+    </a>
+  </div>
+
+  <hr class="my-5">
+
+  <section class="comments-section">
+    {% with comments.count as total_comments %}
+      <h2 class="mb-4">
+        <i class="bi bi-chat-dots"></i> {{ total_comments }} Comment{{ total_comments|pluralize }}
+      </h2>
+    {% endwith %}
+
+    <div class="comments-list mb-5">
+      {% for comment in comments %}
+        <div class="comment card mb-3">
+          <div class="card-body">
+            <div class="comment-header mb-2">
+              <strong>{{ comment.name }}</strong>
+              <small class="text-muted ms-2">{{ comment.created|date:"F d, Y - g:i A" }}</small>
+            </div>
+            <div class="comment-body">
+              {{ comment.body|linebreaks }}
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-muted">No comments yet. Be the first to comment!</p>
+      {% endfor %}
+    </div>
+
+    {% include "blog/post/includes/comment_form.html" %}
+  </section>
+</article>
+
+<style>
+  .post-header h1 {
+    color: var(--dark-blue);
+    font-weight: 700;
+  }
+
+  .post-meta {
+    font-size: 0.95rem;
+  }
+
+  .post-image img {
+    max-height: 600px;
+    object-fit: cover;
+    width: 100%;
+  }
+
+  .post-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--text-dark);
+  }
+
+  .comment {
+    border-left: 3px solid var(--primary-blue);
+  }
+
+  .comment-header strong {
+    color: var(--primary-blue);
+  }
+</style>
 {% endblock %}
