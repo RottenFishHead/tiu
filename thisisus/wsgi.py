@@ -1,7 +1,7 @@
 import os
 import sys
 
-project_home = 'home/RottenFishHead/tiu'
+project_home = '/home/RottenFishHead/tiu/thisisus'
 if project_home not in sys.path:
     sys.path.insert(0, project_home)
 
