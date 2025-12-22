@@ -51,6 +51,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'thisisus.urls'
+CSRF_TRUSTED_ORIGINS = ['https://thisisus.fly.dev/']
 
 TEMPLATES = [
     {
