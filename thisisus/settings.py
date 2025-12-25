@@ -1,20 +1,27 @@
 from pathlib import Path
 import os
+import dj_database_url
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env file from BASE_DIR
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-y6@y7q_el32&)y*pl$zd766qxh@=4+--z0q4ui8h=u2nr@b-&f'
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise ValueError("The SECRET_KEY environment variable is not set.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['thisisus.fly.dev', 'localhost', '127.0.0.1', 'https://thisisus.fly.dev']
 
 
 # Application definition
@@ -56,7 +63,7 @@ CSRF_TRUSTED_ORIGINS = ['https://thisisus.fly.dev/']
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -74,12 +81,35 @@ WSGI_APPLICATION = 'thisisus.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),  # Load DATABASE_URL from .env
+        conn_max_age=600,  # Optional: Keep database connections open for 600 seconds
+        conn_health_checks=True,  # Optional: Enable connection health checks
+    )
 }
+
+CSRF_TRUSTED_ORIGINS = ["https://thisisus.fly.dev",  # full URL with https
+]
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# Set the session cookie to persist (e.g., 2 weeks)
+SESSION_COOKIE_AGE = 15552000  # 6 months in seconds
+
+# Allow session cookies to persist even after the browser is closed
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+SESSION_COOKIE_SECURE = True  # Ensures cookies are sent over HTTPS only
+SESSION_COOKIE_HTTPONLY = True  # Prevents JavaScript access to session cookies
+SESSION_COOKIE_SAMESITE = 'Lax'  # Protects against CSRF attacks
 
 STORAGES = {
     # ...
