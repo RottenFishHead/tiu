@@ -152,11 +152,20 @@ def overall_chart(request):
     if stakes:
         session = session.filter(stakes=stakes)
     
-    fig = px.line(
-        x=[s.date for s in session],
-        y=[s.win_loss for s in session],
+    dates = [s.date for s in session]
+    win_losses = [s.win_loss for s in session]
+    
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=win_losses,
+        mode='lines+markers',
+        name='Win/Loss'
+    ))
+    fig.update_layout(
         title='Overall Stats',
-        labels={'x': 'Date', 'y': 'Win/Loss'}
+        xaxis_title='Date',
+        yaxis_title='Win/Loss'
     )
     fig.update_xaxes(tickangle=45, tickfont=dict(family='Rockwell', color='green', size=14))
     fig.update_layout(title={
@@ -281,11 +290,20 @@ def homepage_view(request):
         else:
             session['win_rate_per_hour'] = None
     
-    fig = px.line(
-        x=[s.date for s in sessions],
-        y=[s.win_loss for s in sessions],
+    dates = [s.date for s in sessions]
+    win_losses = [s.win_loss for s in sessions]
+    
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=win_losses,
+        mode='lines+markers',
+        name='Win/Loss'
+    ))
+    fig.update_layout(
         title='Overall Stats',
-        labels={'x': 'Date', 'y': 'Win/Loss'}
+        xaxis_title='Date',
+        yaxis_title='Win/Loss'
     )
     fig.update_xaxes(tickangle=45, tickfont=dict(family='Rockwell', color='green', size=14))
     fig.update_layout(title={
@@ -323,11 +341,21 @@ def chart_25(request):
         session = session.filter(date__lte=end)
     if stakes:
         session = session.filter(stakes=stakes)
-    fig = px.line(
-        x=[s.date for s in session],
-        y=[s.win_loss for s in session],
+    
+    dates = [s.date for s in session]
+    win_losses = [s.win_loss for s in session]
+    
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=win_losses,
+        mode='lines+markers',
+        name='Win/Loss'
+    ))
+    fig.update_layout(
         title='2/5 Chart',
-        labels={'x': 'Date', 'y': 'Win/Loss'}
+        xaxis_title='Date',
+        yaxis_title='Win/Loss'
     )
     fig.update_xaxes(tickangle=45, tickfont=dict(family='Rockwell', color='green', size=14))
     fig.update_layout(title={
