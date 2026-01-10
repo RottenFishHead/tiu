@@ -81,24 +81,6 @@ class PlayerProfile(models.Model):
         return f"{self.display_name}"
 
 
-class TendencyMetric(models.TextChoices):
-    """
-    Keep metrics extensible. Add as you go.
-    """
-    VPIP = "vpip", "VPIP"
-    PFR = "pfr", "PFR"
-    THREE_BET = "3bet", "3-bet"
-    FOLD_TO_3BET = "fold_to_3bet", "Fold to 3-bet"
-    C_BET_FLOP = "cbet_flop", "C-bet Flop"
-    C_BET_TURN = "cbet_turn", "C-bet Turn"
-    FOLD_TO_CBET_FLOP = "fold_to_cbet_flop", "Fold to Flop C-bet"
-    CHECK_RAISE_FLOP = "xr_flop", "Check-raise Flop"
-    DONK_FLOP = "donk_flop", "Donk Flop"
-    RIVER_CALL_DOWN = "river_call_down", "River Call-down"
-    SHOWDOWN_VALUE_HEAVY = "sd_value_heavy", "Showdown: Value-heavy"
-    BLUFF_FREQUENCY = "bluff_freq", "Bluff Frequency"
-
-
 class Street(models.TextChoices):
     PREFLOP = "pre", "Preflop"
     FLOP = "flop", "Flop"
@@ -106,11 +88,28 @@ class Street(models.TextChoices):
     RIVER = "river", "River"
 
 
+class TendencyMetric(models.TextChoices):
+    # --- Preflop core ---
+    VPIP = "vpip", "VPIP (plays lots of hands)"
+    PFR = "pfr", "PFR (raises preflop)"
+    THREE_BET = "3bet", "3-bet frequency"
+    FOLD_TO_3BET = "fold_to_3bet", "Folds to 3-bet"
+    CALLS_3BET = "calls_3bet", "Calls 3-bets"
+
+    # --- Flop core ---
+    CBET_FLOP = "cbet_flop", "C-bet flop"
+    FOLD_TO_CBET_FLOP = "fold_to_cbet_flop", "Folds to flop c-bet"
+    XR_FLOP = "xr_flop", "Check-raise flop"
+
+    # --- Turn core ---
+    BARREL_TURN = "barrel_turn", "Barrels turn"
+    FOLD_TO_TURN_BET = "fold_to_turn_bet", "Folds to turn bet"
+
+    # --- River core ---
+    VALUE_HEAVY_RIVER = "value_heavy_river", "River raises = value-heavy"
+    BLUFFY_RIVER = "bluffy_river", "Bluffy on river"
+
 class PlayerTendency(models.Model):
-    """
-    A single metric + value for a player, with optional street and confidence.
-    This supports both hard numbers (e.g. 65%) and qualitative scores (0-10).
-    """
     player = models.ForeignKey(PlayerProfile, on_delete=models.CASCADE, related_name="tendencies")
     metric = models.CharField(max_length=40, choices=TendencyMetric.choices)
     street = models.CharField(max_length=10, choices=Street.choices, blank=True)
@@ -128,9 +127,11 @@ class PlayerTendency(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ("player", "metric", "street")
         indexes = [
             models.Index(fields=["player", "metric"]),
+        ]   
+        constraints = [
+            models.UniqueConstraint(fields=["player", "metric", "street"], name="uniq_player_metric_street")
         ]
 
     def __str__(self):
@@ -162,3 +163,33 @@ class PlayerObservation(models.Model):
 
     def __str__(self):
         return f"{self.player}: {self.action[:60]}"
+    
+class ExploitTag(models.Model):
+    """
+    Button-driven exploit statements (the real money).
+    """
+    name = models.CharField(max_length=80, unique=True)
+    description = models.CharField(max_length=200, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class PlayerExploit(models.Model):
+    player = models.ForeignKey("PlayerProfile", on_delete=models.CASCADE, related_name="exploits")
+    tag = models.ForeignKey(ExploitTag, on_delete=models.CASCADE, related_name="player_links")
+
+    # Button presses reinforce it
+    strength = models.PositiveSmallIntegerField(default=1)   # 1–10
+    confidence = models.PositiveSmallIntegerField(default=3) # 1–5
+    note = models.CharField(max_length=240, blank=True)
+
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["player", "tag"], name="uniq_player_exploit_tag")
+        ]
+
+    def __str__(self):
+        return f"{self.player} - {self.tag}"

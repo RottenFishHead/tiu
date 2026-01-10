@@ -1,6 +1,7 @@
 # poker_session/admin.py
 from django.contrib import admin
-from .models import PokerSession, Casino, PlayerTag, PlayerProfile, PlayerTendency, PlayerObservation
+from .models import PokerSession, Casino, PlayerTag, PlayerProfile, PlayerTendency,\
+    PlayerObservation, ExploitTag, PlayerExploit
 
 @admin.register(PokerSession)
 class PokerSessionAdmin(admin.ModelAdmin):
@@ -49,3 +50,15 @@ class PlayerTendencyAdmin(admin.ModelAdmin):
 
 
 admin.site.register(PlayerTag)
+
+@admin.register(ExploitTag)
+class ExploitTagAdmin(admin.ModelAdmin):
+    list_display = ("name", "description")
+    search_fields = ("name", "description")
+
+
+@admin.register(PlayerExploit)
+class PlayerExploitAdmin(admin.ModelAdmin):
+    list_display = ("player", "tag", "strength", "confidence", "updated")
+    search_fields = ("player__display_name", "tag__name", "note")
+    list_filter = ("confidence",)

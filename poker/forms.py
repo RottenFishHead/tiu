@@ -1,6 +1,6 @@
 # app_name/forms.py
 from django import forms
-from .models import PokerSession
+from .models import PokerSession, PlayerProfile, PlayerTendency, PlayerExploit
 from datetime import date
 from .fields import STAKES_CHOICES
 
@@ -31,23 +31,8 @@ from .models import (
 class BootstrapMixin:
     def _bootstrap(self):
         for name, field in self.fields.items():
-            widget = field.widget
-            base = widget.attrs.get("class", "")
-
-            if isinstance(widget, forms.FileInput):
-                widget.attrs["class"] = (base + " form-control").strip()
-            elif isinstance(widget, (forms.CheckboxInput,)):
-                widget.attrs["class"] = (base + " form-check-input").strip()
-            elif isinstance(widget, (forms.SelectMultiple,)):
-                widget.attrs["class"] = (base + " form-select").strip()
-            elif isinstance(widget, (forms.Select,)):
-                widget.attrs["class"] = (base + " form-select").strip()
-            else:
-                widget.attrs["class"] = (base + " form-control").strip()
-
-            if isinstance(widget, forms.Textarea):
-                widget.attrs.setdefault("rows", 3)
-
+            base = field.widget.attrs.get("class", "")
+            field.widget.attrs["class"] = (base + " form-control").strip()
 
 class PlayerProfileForm(BootstrapMixin, forms.ModelForm):
     class Meta:
@@ -107,3 +92,23 @@ class PlayerTendencyForm(BootstrapMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._bootstrap()
+
+
+class PlayerTendencyEditForm(BootstrapMixin, forms.ModelForm):
+    class Meta:
+        model = PlayerTendency
+        fields = ["value", "sample_size", "confidence", "note"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._bootstrap()
+        
+class PlayerExploitEditForm(BootstrapMixin, forms.ModelForm):
+    class Meta:
+        model = PlayerExploit
+        fields = ["strength", "confidence", "note"]
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for f in self.fields.values():
+            f.widget.attrs["class"] = "form-control"

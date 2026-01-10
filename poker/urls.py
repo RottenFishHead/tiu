@@ -22,7 +22,8 @@ from poker.views import (add_session,
                          player_detail, player_update, player_delete,
                          observation_create, observation_update, observation_delete,
                          observation_quick_add,
-                         tendency_create, tendency_update, tendency_delete      
+                         tendency_create, tendency_update, tendency_delete, tendency_press,
+                         exploit_press, exploit_update, exploit_delete      
                          )
 
 
@@ -58,6 +59,10 @@ urlpatterns = [
     path("player/<int:player_pk>/tendencies/add/", tendency_create, name="tendency_create"),
     path("tendencies/<int:pk>/edit/", tendency_update, name="tendency_update"),
     path("tendencies/<int:pk>/delete/", tendency_delete, name="tendency_delete"),
+    path("player/<int:player_pk>/tendencies/press/", tendency_press, name="tendency_press"),
+    path("player/<int:player_pk>/exploits/press/", exploit_press, name="exploit_press"),
+    path("exploits/<int:pk>/edit/", exploit_update, name="exploit_update"),
+    path("exploits/<int:pk>/delete/", exploit_delete, name="exploit_delete"),
 ] 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

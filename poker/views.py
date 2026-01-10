@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import PokerSession,PlayerProfile, PlayerObservation, PlayerTendency
+from .models import PokerSession,PlayerProfile, PlayerObservation, PlayerTendency, PlayerProfile, PlayerTendency, ExploitTag, PlayerExploit
 from hands.models import Hands
-from .forms import PokerSessionForm, DateForm, PlayerProfileForm, PlayerObservationForm, PlayerTendencyForm
+from .forms import PokerSessionForm, DateForm, PlayerProfileForm, PlayerObservationForm, PlayerTendencyForm, PlayerTendencyEditForm, PlayerExploitEditForm
 from django.utils import timezone
 from django.db.models import Sum, ExpressionWrapper, F, DurationField
 from django.db.models.functions import TruncMonth
@@ -14,6 +14,7 @@ from calendar import month_name
 from django.db.models import Q
 from django.contrib import messages
 from django.urls import reverse
+from .presets import TENDENCY_PRESETS, EXPLOIT_PRESETS
 
 
 
@@ -432,16 +433,46 @@ def player_detail(request, pk):
     player = get_object_or_404(PlayerProfile, pk=pk)
     observations = player.observations.all()
     tendencies = player.tendencies.all().order_by("metric", "street")
-
-    # ✅ blank form for the modal
     quick_obs_form = PlayerObservationForm()
-
+    exploits = player.exploits.select_related("tag").all().order_by("-confidence", "-strength", "-updated")
     return render(request, "poker/player_detail.html", {
         "player": player,
         "observations": observations,
         "tendencies": tendencies,
         "quick_obs_form": quick_obs_form,
+        "tendency_presets": TENDENCY_PRESETS,
+        "exploit_presets": EXPLOIT_PRESETS,
+        "exploits": exploits,
     })
+
+def tendency_press(request, player_pk):
+    player = get_object_or_404(PlayerProfile, pk=player_pk)
+    if request.method != "POST":
+        return redirect("profiles:player_detail", pk=player.pk)
+
+    metric = request.POST.get("metric", "").strip()
+    street = request.POST.get("street", "").strip()
+
+    if not metric or not street:
+        messages.error(request, "Missing tendency data.")
+        return redirect("profiles:player_detail", pk=player.pk)
+
+    obj, created = PlayerTendency.objects.get_or_create(
+        player=player,
+        metric=metric,
+        street=street,
+        defaults={"sample_size": 1, "confidence": 3}
+    )
+
+    if not created:
+        obj.sample_size = (obj.sample_size or 0) + 1
+        obj.confidence = min(5, (obj.confidence or 1) + 1)
+        obj.save(update_fields=["sample_size", "confidence", "updated"])
+        messages.success(request, "Tendency reinforced (+1 sample).")
+    else:
+        messages.success(request, "Tendency added.")
+
+    return redirect("profiles:player_detail", pk=player.pk)
 
 
 def player_create(request):
@@ -595,18 +626,18 @@ def tendency_update(request, pk):
     player = t.player
 
     if request.method == "POST":
-        form = PlayerTendencyForm(request.POST, instance=t)
+        form = PlayerTendencyEditForm(request.POST, instance=t)
         if form.is_valid():
             form.save()
             messages.success(request, "Tendency updated.")
-            return redirect("poker:player_detail", pk=player.pk)
+            return redirect("profiles:player_detail", pk=player.pk)
     else:
-        form = PlayerTendencyForm(instance=t)
+        form = PlayerTendencyEditForm(instance=t)
 
-    return render(request, "poker/child_form.html", {
+    return render(request, "profiles/child_form.html", {
         "form": form,
-        "title": f"Edit Tendency: {player.display_name}",
-        "cancel_url": reverse("poker:player_detail", kwargs={"pk": player.pk}),
+        "title": f"Edit Tendency: {player.display_name} ({t.get_metric_display}{' - ' + t.get_street_display if t.street else ''})",
+        "cancel_url": reverse("profiles:player_detail", kwargs={"pk": player.pk}),
     })
 
 
@@ -622,4 +653,68 @@ def tendency_delete(request, pk):
     return render(request, "poker/confirm_delete.html", {
         "object": t,
         "cancel_url": reverse("poker:player_detail", kwargs={"pk": player.pk}),
+    })
+    
+def exploit_press(request, player_pk):
+    player = get_object_or_404(PlayerProfile, pk=player_pk)
+    if request.method != "POST":
+        return redirect("poker:player_detail", pk=player.pk)
+
+    name = (request.POST.get("name") or "").strip()
+    desc = (request.POST.get("desc") or "").strip()
+
+    if not name:
+        messages.error(request, "Missing exploit.")
+        return redirect("poker:player_detail", pk=player.pk)
+
+    tag, _ = ExploitTag.objects.get_or_create(name=name, defaults={"description": desc})
+
+    link, created = PlayerExploit.objects.get_or_create(
+        player=player,
+        tag=tag,
+        defaults={"strength": 1, "confidence": 3},
+    )
+
+    if not created:
+        link.strength = min(10, link.strength + 1)
+        link.confidence = min(5, link.confidence + 1)
+        link.save(update_fields=["strength", "confidence", "updated"])
+        messages.success(request, "Exploit reinforced (+1 strength).")
+    else:
+        messages.success(request, "Exploit added.")
+
+    return redirect("poker:player_detail", pk=player.pk)
+
+def exploit_update(request, pk):
+    obj = get_object_or_404(PlayerExploit, pk=pk)
+    player = obj.player
+
+    if request.method == "POST":
+        form = PlayerExploitEditForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Exploit updated.")
+            return redirect("profiles:player_detail", pk=player.pk)
+    else:
+        form = PlayerExploitEditForm(instance=obj)
+
+    return render(request, "profiles/child_form.html", {
+        "form": form,
+        "title": f"Edit Exploit: {player.display_name} — {obj.tag.name}",
+        "cancel_url": reverse("profiles:player_detail", kwargs={"pk": player.pk}),
+    })
+
+
+def exploit_delete(request, pk):
+    obj = get_object_or_404(PlayerExploit, pk=pk)
+    player = obj.player
+
+    if request.method == "POST":
+        obj.delete()
+        messages.success(request, "Exploit deleted.")
+        return redirect("profiles:player_detail", pk=player.pk)
+
+    return render(request, "profiles/confirm_delete.html", {
+        "object": obj,
+        "cancel_url": reverse("profiles:player_detail", kwargs={"pk": player.pk}),
     })
