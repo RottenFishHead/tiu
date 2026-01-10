@@ -80,20 +80,20 @@ WSGI_APPLICATION = 'thisisus.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
-#     'default': dj_database_url.config(
-#         default=os.getenv('DATABASE_URL'),  # Load DATABASE_URL from .env
-#         conn_max_age=600,  # Optional: Keep database connections open for 600 seconds
-#         conn_health_checks=True,  # Optional: Enable connection health checks
-#     )
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
 # }
+
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),  # Load DATABASE_URL from .env
+        conn_max_age=600,  # Optional: Keep database connections open for 600 seconds
+        conn_health_checks=True,  # Optional: Enable connection health checks
+    )
+}
 
 CSRF_TRUSTED_ORIGINS = ["https://thisisus.fly.dev",  # full URL with https
 ]
