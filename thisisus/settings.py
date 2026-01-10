@@ -111,7 +111,9 @@ SESSION_COOKIE_HTTPONLY = True  # Prevents JavaScript access to session cookies
 SESSION_COOKIE_SAMESITE = 'Lax'  # Protects against CSRF attacks
 
 STORAGES = {
-    # ...
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
