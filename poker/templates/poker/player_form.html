@@ -1,0 +1,50 @@
+{% extends "poker/base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit{% else %}Add{% endif %} Player | Poker poker{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h3 mb-0">
+    {% if mode == "edit" %}Edit Player{% else %}Add Player{% endif %}
+  </h1>
+  <a class="btn btn-outline-secondary" href="{% url 'poker:player_list' %}">Cancel</a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+          {% if mode == "edit" and player.player_image %}
+            <div class="mb-3">
+              <div class="text-muted small mb-1">Current photo</div>
+              <img src="{{ player.player_image.url }}" class="img-fluid rounded border" style="max-height:220px;" alt="Player photo">
+            </div>
+          {% endif %}
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}
+            <div class="form-text">{{ field.help_text }}</div>
+          {% endif %}
+          {% if field.errors %}
+            <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit">Save</button>
+
+        {% if mode == "edit" and player %}
+          <a class="btn btn-outline-danger" href="{% url 'poker:player_delete' player.pk %}">Delete</a>
+          <a class="btn btn-outline-secondary" href="{% url 'poker:player_detail' player.pk %}">Back</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

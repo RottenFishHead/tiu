@@ -1,0 +1,83 @@
+{% extends "poker/base.html" %}
+{% block title %}Players | Poker players{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="h3 mb-0">Players</h1>
+    <div class="text-muted small">Track notes, sightings, and tendencies.</div>
+  </div>
+  <a class="btn btn-primary" href="{% url 'poker:player_create' %}">+ Add Player</a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    {% if q %}
+      <div class="mb-3">
+        <span class="badge text-bg-secondary">Search: {{ q }}</span>
+        <a class="ms-2 small" href="{% url 'poker:player_list' %}">Clear</a>
+      </div>
+    {% endif %}
+
+    {% if players %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>Tags</th>
+              <th>Last Seen</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in players %}
+              <tr>
+                <td>
+                  <div class="fw-semibold">
+                    <a class="text-decoration-none" href="{% url 'poker:player_detail' p.pk %}">
+                      {% if p.image %}
+                        <img src="{{ p.image.url }}" alt="{{ p.display_name }}" style="height: 40px; width: 40px; object-fit: cover; border-radius: 50%; margin-right: 8px;">
+                      {% else %}
+                        No Image
+                      {% endif %}
+                      {{ p.display_name }}
+                    </a>
+                  </div>
+                  {% if p.summary %}
+                    <div class="text-muted small">{{ p.summary }}</div>
+                  {% endif %}
+                </td>
+                <td>
+                  {% for tag in p.tags.all %}
+                    <span class="badge text-bg-dark me-1">{{ tag.name }}</span>
+                  {% empty %}
+                    <span class="text-muted small">—</span>
+                  {% endfor %}
+                </td>
+                <td>
+                  {% if p.last_seen %}
+                    {{ p.last_seen }}
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <a class="btn btn-sm btn-outline-secondary" href="{% url 'poker:player_update' p.pk %}">Edit</a>
+                  <a class="btn btn-sm btn-outline-danger" href="{% url 'poker:player_delete' p.pk %}">Delete</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5">
+        <div class="h5 mb-2">No players yet</div>
+        <div class="text-muted mb-3">Add your first villain profile.</div>
+        <a class="btn btn-primary" href="{% url 'poker:player_create' %}">+ Add Player</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -2,6 +2,8 @@ from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
 from .fields import STAKES_CHOICES
+from django.conf import settings
+from django.utils import timezone   
     
 class Casino(models.Model):
     name = models.CharField(max_length=255)
@@ -45,3 +47,118 @@ class PokerSession(models.Model):
             total_hours -= break_hours
         return total_hours
 
+class PlayerTag(models.Model):
+    """
+    Flexible labels like: NIT, LAG, Station, Maniac, Reg, OMC, etc.
+    """
+    name = models.CharField(max_length=50, unique=True)
+    color = models.CharField(max_length=20, blank=True, help_text="Optional UI hint (e.g. 'red', '#ff0000').")
+
+    def __str__(self):
+        return self.name
+
+
+class PlayerProfile(models.Model):
+    # Identity / matching
+    display_name = models.CharField(max_length=120, help_text="What you call them (e.g., 'Hat Guy', 'Mike').")
+    casino = models.ForeignKey(Casino, on_delete=models.SET_NULL, null=True, blank=True)
+    approximate_age = models.PositiveSmallIntegerField(null=True, blank=True)
+    description = models.TextField(blank=True, help_text="Physical / behavior identifiers (non-sensitive).")
+    image = models.ImageField(upload_to='player_images/', null=True, blank=True)
+    # Quick summary for list views
+    summary = models.CharField(max_length=240, blank=True, help_text="One-line take (e.g., 'Loose passive station; never bluffs river').")
+    tags = models.ManyToManyField(PlayerTag, blank=True, related_name="players")
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["display_name"])
+        ]
+        
+
+    def __str__(self):
+        return f"{self.display_name}"
+
+
+class TendencyMetric(models.TextChoices):
+    """
+    Keep metrics extensible. Add as you go.
+    """
+    VPIP = "vpip", "VPIP"
+    PFR = "pfr", "PFR"
+    THREE_BET = "3bet", "3-bet"
+    FOLD_TO_3BET = "fold_to_3bet", "Fold to 3-bet"
+    C_BET_FLOP = "cbet_flop", "C-bet Flop"
+    C_BET_TURN = "cbet_turn", "C-bet Turn"
+    FOLD_TO_CBET_FLOP = "fold_to_cbet_flop", "Fold to Flop C-bet"
+    CHECK_RAISE_FLOP = "xr_flop", "Check-raise Flop"
+    DONK_FLOP = "donk_flop", "Donk Flop"
+    RIVER_CALL_DOWN = "river_call_down", "River Call-down"
+    SHOWDOWN_VALUE_HEAVY = "sd_value_heavy", "Showdown: Value-heavy"
+    BLUFF_FREQUENCY = "bluff_freq", "Bluff Frequency"
+
+
+class Street(models.TextChoices):
+    PREFLOP = "pre", "Preflop"
+    FLOP = "flop", "Flop"
+    TURN = "turn", "Turn"
+    RIVER = "river", "River"
+
+
+class PlayerTendency(models.Model):
+    """
+    A single metric + value for a player, with optional street and confidence.
+    This supports both hard numbers (e.g. 65%) and qualitative scores (0-10).
+    """
+    player = models.ForeignKey(PlayerProfile, on_delete=models.CASCADE, related_name="tendencies")
+    metric = models.CharField(max_length=40, choices=TendencyMetric.choices)
+    street = models.CharField(max_length=10, choices=Street.choices, blank=True)
+
+    # Store as a percent (0-100) or score (0-10) depending on metric;
+    # you can standardize later.
+    value = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+
+    # How sure are you? sample_size gives weight.
+    sample_size = models.PositiveIntegerField(default=0)
+    confidence = models.PositiveSmallIntegerField(default=1, help_text="1-5 subjective confidence.")
+
+    note = models.CharField(max_length=240, blank=True)
+
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("player", "metric", "street")
+        indexes = [
+            models.Index(fields=["player", "metric"]),
+        ]
+
+    def __str__(self):
+        return f"{self.player} {self.metric} {self.street or ''}".strip()
+
+class PlayerObservation(models.Model):
+    """
+    Atomic observation: "he 3-bet light from BB vs BTN", "slowplays sets", etc.
+    These are gold because they age well even if your numeric estimates change.
+    """
+    player = models.ForeignKey(PlayerProfile, on_delete=models.CASCADE, related_name="observations")
+    session = models.ForeignKey(PokerSession, on_delete=models.SET_NULL, null=True, blank=True)
+    street = models.CharField(max_length=10, choices=Street.choices, blank=True)
+    situation = models.CharField(max_length=120, blank=True, help_text="e.g., 'BTN vs BB SRP', '3bet pot OOP'")
+    action = models.CharField(max_length=200, help_text="What happened (short, structured).")
+    takeaway = models.CharField(max_length=240, blank=True, help_text="Your exploit / adjustment.")
+
+    # Optional simple “strength” / reliability marker
+    reliability = models.PositiveSmallIntegerField(default=3, help_text="1-5 how trustworthy this read is.")
+    happened_at = models.DateTimeField(null=True, blank=True)
+
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created"]
+        indexes = [
+            models.Index(fields=["player", "-created"])
+        ]
+
+    def __str__(self):
+        return f"{self.player}: {self.action[:60]}"

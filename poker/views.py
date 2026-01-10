@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import PokerSession
+from .models import PokerSession,PlayerProfile, PlayerObservation, PlayerTendency
 from hands.models import Hands
-from .forms import PokerSessionForm, DateForm
+from .forms import PokerSessionForm, DateForm, PlayerProfileForm, PlayerObservationForm, PlayerTendencyForm
 from django.utils import timezone
 from django.db.models import Sum, ExpressionWrapper, F, DurationField
 from django.db.models.functions import TruncMonth
@@ -11,6 +11,9 @@ from plotly import graph_objs as go
 import plotly.express as px
 import pandas as pd
 from calendar import month_name
+from django.db.models import Q
+from django.contrib import messages
+from django.urls import reverse
 
 
 
@@ -405,3 +408,218 @@ def all_sessions_chart(request):
     chart_json = fig.to_json()
 
     return render(request, 'poker/all_sessions_chart.html', {'chart_json': chart_json})
+
+
+# --- Player poker ---
+
+
+def player_list(request):
+    q = (request.GET.get("q") or "").strip()
+    players = PlayerProfile.objects.all().order_by("display_name")
+
+    if q:
+        players = players.filter(
+            Q(display_name__icontains=q)
+            | Q(summary__icontains=q)
+            | Q(description__icontains=q)
+            | Q(tags__name__icontains=q)
+        ).distinct()
+
+    return render(request, "poker/player_list.html", {"players": players, "q": q})
+
+
+def player_detail(request, pk):
+    player = get_object_or_404(PlayerProfile, pk=pk)
+    observations = player.observations.all()
+    tendencies = player.tendencies.all().order_by("metric", "street")
+
+    # ✅ blank form for the modal
+    quick_obs_form = PlayerObservationForm()
+
+    return render(request, "poker/player_detail.html", {
+        "player": player,
+        "observations": observations,
+        "tendencies": tendencies,
+        "quick_obs_form": quick_obs_form,
+    })
+
+
+def player_create(request):
+    if request.method == "POST":
+        form = PlayerProfileForm(request.POST, request.FILES)  # ✅ FILES
+        if form.is_valid():
+            player = form.save()
+            messages.success(request, "Player created.")
+            return redirect("poker:player_detail", pk=player.pk)
+    else:
+        form = PlayerProfileForm()
+
+    return render(request, "poker/player_form.html", {"form": form, "mode": "create"})
+
+
+def player_update(request, pk):
+    player = get_object_or_404(PlayerProfile, pk=pk)
+
+    if request.method == "POST":
+        form = PlayerProfileForm(request.POST, request.FILES, instance=player)  
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Player updated.")
+            return redirect("poker:player_detail", pk=player.pk)
+    else:
+        form = PlayerProfileForm(instance=player)
+
+    return render(request, "poker/player_form.html", {"form": form, "mode": "edit", "player": player})
+
+
+def player_delete(request, pk):
+    player = get_object_or_404(PlayerProfile, pk=pk)
+
+    if request.method == "POST":
+        player.delete()
+        messages.success(request, "Player deleted.")
+        return redirect("poker:player_list")
+
+    return render(request, "poker/confirm_delete.html", {
+        "object": player,
+        "cancel_url": reverse("poker:player_detail", kwargs={"pk": player.pk}),
+    })
+
+
+# --- Observations ---
+
+def observation_quick_add(request, player_pk):
+    """
+    ✅ POST-only endpoint used by the modal on player_detail.
+    """
+    player = get_object_or_404(PlayerProfile, pk=player_pk)
+
+    if request.method != "POST":
+        return redirect("poker:player_detail", pk=player.pk)
+
+    form = PlayerObservationForm(request.POST)
+    if form.is_valid():
+        obs = form.save(commit=False)
+        obs.player = player
+        obs.save()
+        messages.success(request, "Observation added.")
+    else:
+        # Keep it simple: show first error in a flash message
+        # (If you want, we can re-render detail with modal opened + errors.)
+        messages.error(request, "Could not add observation. Please check the fields.")
+
+    return redirect("poker:player_detail", pk=player.pk)
+
+
+def observation_create(request, player_pk):
+    player = get_object_or_404(PlayerProfile, pk=player_pk)
+
+    if request.method == "POST":
+        form = PlayerObservationForm(request.POST)
+        if form.is_valid():
+            obs = form.save(commit=False)
+            obs.player = player
+            obs.save()
+            messages.success(request, "Observation added.")
+            return redirect("poker:player_detail", pk=player.pk)
+    else:
+        form = PlayerObservationForm()
+
+    return render(request, "poker/child_form.html", {
+        "form": form,
+        "title": f"Add Observation: {player.display_name}",
+        "cancel_url": reverse("poker:player_detail", kwargs={"pk": player.pk}),
+    })
+
+
+def observation_update(request, pk):
+    obs = get_object_or_404(PlayerObservation, pk=pk)
+    player = obs.player
+
+    if request.method == "POST":
+        form = PlayerObservationForm(request.POST, instance=obs)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Observation updated.")
+            return redirect("poker:player_detail", pk=player.pk)
+    else:
+        form = PlayerObservationForm(instance=obs)
+
+    return render(request, "poker/child_form.html", {
+        "form": form,
+        "title": f"Edit Observation: {player.display_name}",
+        "cancel_url": reverse("poker:player_detail", kwargs={"pk": player.pk}),
+    })
+
+
+def observation_delete(request, pk):
+    obs = get_object_or_404(PlayerObservation, pk=pk)
+    player = obs.player
+
+    if request.method == "POST":
+        obs.delete()
+        messages.success(request, "Observation deleted.")
+        return redirect("poker:player_detail", pk=player.pk)
+
+    return render(request, "poker/confirm_delete.html", {
+        "object": obs,
+        "cancel_url": reverse("poker:player_detail", kwargs={"pk": player.pk}),
+    })
+
+
+# --- Tendencies ---
+
+def tendency_create(request, player_pk):
+    player = get_object_or_404(PlayerProfile, pk=player_pk)
+
+    if request.method == "POST":
+        form = PlayerTendencyForm(request.POST)
+        if form.is_valid():
+            t = form.save(commit=False)
+            t.player = player
+            t.save()
+            messages.success(request, "Tendency added.")
+            return redirect("poker:player_detail", pk=player.pk)
+    else:
+        form = PlayerTendencyForm()
+
+    return render(request, "poker/child_form.html", {
+        "form": form,
+        "title": f"Add Tendency: {player.display_name}",
+        "cancel_url": reverse("poker:player_detail", kwargs={"pk": player.pk}),
+    })
+
+
+def tendency_update(request, pk):
+    t = get_object_or_404(PlayerTendency, pk=pk)
+    player = t.player
+
+    if request.method == "POST":
+        form = PlayerTendencyForm(request.POST, instance=t)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Tendency updated.")
+            return redirect("poker:player_detail", pk=player.pk)
+    else:
+        form = PlayerTendencyForm(instance=t)
+
+    return render(request, "poker/child_form.html", {
+        "form": form,
+        "title": f"Edit Tendency: {player.display_name}",
+        "cancel_url": reverse("poker:player_detail", kwargs={"pk": player.pk}),
+    })
+
+
+def tendency_delete(request, pk):
+    t = get_object_or_404(PlayerTendency, pk=pk)
+    player = t.player
+
+    if request.method == "POST":
+        t.delete()
+        messages.success(request, "Tendency deleted.")
+        return redirect("poker:player_detail", pk=player.pk)
+
+    return render(request, "poker/confirm_delete.html", {
+        "object": t,
+        "cancel_url": reverse("poker:player_detail", kwargs={"pk": player.pk}),
+    })
