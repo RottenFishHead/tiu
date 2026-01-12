@@ -58,9 +58,7 @@ def add_session(request):
     if request.method == 'POST':
         form = PokerSessionForm(request.POST)
         if form.is_valid():
-            session = form.save(commit=False)
-            session.player = request.user
-            session.save()
+            session = form.save()
             return redirect('poker:session_list')
     else:
         form = PokerSessionForm()
