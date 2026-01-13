@@ -98,6 +98,7 @@ def index(request):
         'overall_hourly_rate': overall_hourly_rate,
         'overall_hours': overall_hours,
         'overall_total': overall_earned,
+        'overall_earned': overall_earned,
         'current_month_name': current_month_name,
         'current_year': current_year,
         'budget_remaining': budget_remaining, 

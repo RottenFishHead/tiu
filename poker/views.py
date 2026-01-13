@@ -376,6 +376,7 @@ def session_hands(request):
     return render(request, 'poker/session_hands.html', {'sessions': sessions_with_hands})
 
 
+@login_required
 def all_sessions_chart(request):
     """Bankroll / Cumulative Profit Over Time chart starting at $2000"""
     # Fetch data from the database for the logged-in user
