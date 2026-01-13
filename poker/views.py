@@ -225,12 +225,12 @@ def session_list_25(request):
     })
 
 @login_required
-def session_list_13(request):
+def session_list_23(request):
     current_month = timezone.now().month
     current_year = timezone.now().year
     requested_month = int(request.GET.get('month', current_month))
     requested_year = int(request.GET.get('year', current_year))
-    requested_stakes = request.GET.get('stakes', '13')  # Default to '25' if not provided
+    requested_stakes = request.GET.get('stakes', '23')  # Default to '23' if not provided
 
     # Generate month choices for the dropdown
     month_choices = [(str(i), month_name[i]) for i in range(1, 13)]
@@ -407,6 +407,72 @@ def all_sessions_chart(request):
     chart_json = fig.to_json()
 
     return render(request, 'poker/all_sessions_chart.html', {'chart_json': chart_json})
+
+
+@login_required
+def daily_winloss_chart(request):
+    """Bar chart showing win/loss for each session day, with optional month filter"""
+    # Get filter parameters
+    year = request.GET.get('year')
+    month = request.GET.get('month')
+    
+    # Start with all sessions for the logged-in user
+    sessions = PokerSession.objects.filter(player=request.user)
+    
+    # Apply filters if provided
+    if year:
+        sessions = sessions.filter(date__year=year)
+    if month:
+        sessions = sessions.filter(date__month=month)
+    
+    # Order by date
+    sessions = sessions.order_by('date')
+    
+    # Prepare data for the chart
+    dates = [s.date.strftime('%Y-%m-%d') for s in sessions]
+    win_losses = [s.win_loss for s in sessions]
+    
+    # Create color list (green for wins, red for losses)
+    colors = ['green' if wl > 0 else 'red' for wl in win_losses]
+    
+    # Create bar chart
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=dates,
+        y=win_losses,
+        marker_color=colors,
+        name='Win/Loss',
+        text=[f'${wl:,.0f}' for wl in win_losses],
+        textposition='outside'
+    ))
+    
+    fig.update_layout(
+        title='Daily Win/Loss',
+        xaxis_title='Date',
+        yaxis_title='Win/Loss ($)',
+        hovermode='x unified',
+        showlegend=False
+    )
+    
+    fig.update_xaxes(tickangle=45)
+    
+    # Convert to HTML
+    chart = fig.to_html()
+    
+    # Get available years and months for filter dropdowns
+    all_sessions = PokerSession.objects.filter(player=request.user)
+    years = all_sessions.dates('date', 'year', order='DESC')
+    months = [(i, month_name[i]) for i in range(1, 13)]
+    
+    context = {
+        'chart': chart,
+        'years': years,
+        'months': months,
+        'selected_year': year,
+        'selected_month': month,
+    }
+    
+    return render(request, 'poker/daily_winloss_chart.html', context)
 
 
 # --- Player poker ---
