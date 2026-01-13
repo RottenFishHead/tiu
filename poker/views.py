@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import PokerSession,PlayerProfile, PlayerObservation, PlayerTendency, PlayerProfile, PlayerTendency, ExploitTag, PlayerExploit
 from hands.models import Hands
 from .forms import PokerSessionForm, DateForm, PlayerProfileForm, PlayerObservationForm, PlayerTendencyForm, PlayerTendencyEditForm, PlayerExploitEditForm
+from .fields import STAKES_CHOICES
 from django.utils import timezone
 from django.db.models import Sum, ExpressionWrapper, F, DurationField
 from django.db.models.functions import TruncMonth
@@ -332,48 +333,40 @@ def homepage_view(request):
 
 @login_required
 def chart_25(request):
-    session =  PokerSession.objects.filter(stakes='25').filter(player=request.user)
-    start = request.GET.get('start')
-    end = request.GET.get('end')
-    stakes = request.GET.get('stakes')
+    """Profit per session bar chart with stakes filter"""
+    # Get filter parameters
+    stakes = request.GET.get('stakes', '25')  # Default to 2/5
     
-    if start:
-        session = session.filter(date__gte=start)
-    if end:
-        session = session.filter(date__lte=end)
-    if stakes:
-        session = session.filter(stakes=stakes)
+    # Fetch sessions for the logged-in user with selected stakes
+    sessions = PokerSession.objects.filter(player=request.user, stakes=stakes).order_by('date')
     
-    dates = [s.date for s in session]
-    win_losses = [s.win_loss for s in session]
+    # Create a DataFrame from the queryset
+    data = {
+        'date': [session.date for session in sessions],
+        'profit': [session.win_loss for session in sessions],
+    }
+    df = pd.DataFrame(data)
     
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=dates,
-        y=win_losses,
-        mode='lines+markers',
-        name='Win/Loss'
-    ))
-    fig.update_layout(
-        title='2/5 Chart',
-        xaxis_title='Date',
-        yaxis_title='Win/Loss'
-    )
-    fig.update_xaxes(tickangle=45, tickfont=dict(family='Rockwell', color='green', size=14))
-    fig.update_layout(title={
-        'font_size': 22,
-        'xanchor': 'center',
-
-        'x': 0.5
-    })
-    fig.update_layout(
-        autosize=True)
+    if not df.empty:
+        # Create the bar chart
+        fig = px.bar(df.sort_values("date"), x="date", y="profit", title=f"Profit per Session - Stakes: {dict(STAKES_CHOICES).get(stakes, stakes)}")
+        fig.update_layout(yaxis_title="Profit $")
+    else:
+        # Empty chart if no data
+        fig = go.Figure()
+        fig.update_layout(
+            title=f"No sessions found for stakes: {dict(STAKES_CHOICES).get(stakes, stakes)}",
+            xaxis_title="Date",
+            yaxis_title="Profit $"
+        )
     
     chart = fig.to_html()
-        
-    context = {'chart': chart,
-               'form': DateForm
-            }
+    
+    context = {
+        'chart': chart,
+        'stakes_choices': STAKES_CHOICES,
+        'selected_stakes': stakes,
+    }
     return render(request, 'poker/chart_25.html', context)
 
 @login_required
@@ -384,29 +377,64 @@ def session_hands(request):
 
 
 def all_sessions_chart(request):
-    # Fetch data from the database
-    sessions = PokerSession.objects.all()
+    """Bankroll / Cumulative Profit Over Time chart starting at $2000"""
+    # Fetch data from the database for the logged-in user
+    sessions = PokerSession.objects.filter(player=request.user).order_by('date')
 
     # Create a DataFrame from the queryset
     data = {
         'date': [session.date for session in sessions],
-        'win_loss': [session.win_loss for session in sessions],
+        'profit': [session.win_loss for session in sessions],
     }
     df = pd.DataFrame(data)
 
-    # Group data by date and calculate cumulative sum for win_loss
-    df['cumulative_win_loss'] = df.groupby('date')['win_loss'].cumsum()
+    # Sort by date and calculate cumulative profit
+    df = df.sort_values("date")
+    df["cum_profit"] = df["profit"].cumsum()
+    
+    # Add starting bankroll of $2000
+    starting_bankroll = 2000
+    df["bankroll"] = starting_bankroll + df["cum_profit"]
 
     # Create the Plotly Express chart
-    fig = px.line(df, x='date', y='cumulative_win_loss', title='Win Loss Over Time', labels={'cumulative_win_loss': 'Total Win/Loss', 'date': 'Date'})
-
-    # Customize the layout if needed
-    fig.update_layout(title='Win Loss Over Time', xaxis_title='Date', yaxis_title='Total Win/Loss')
+    fig = px.line(df, x="date", y="bankroll", title="Bankroll Over Time")
+    fig.update_layout(
+        yaxis_title="Bankroll ($)",
+        xaxis_title="Date",
+        hovermode='x unified'
+    )
+    
+    # Add a horizontal line at starting bankroll
+    fig.add_hline(y=starting_bankroll, line_dash="dash", line_color="gray", 
+                  annotation_text=f"Starting Bankroll: ${starting_bankroll}")
 
     # Convert the Plotly figure to JSON
     chart_json = fig.to_json()
 
     return render(request, 'poker/all_sessions_chart.html', {'chart_json': chart_json})
+
+
+@login_required
+def profit_per_session_chart(request):
+    """Bar chart showing profit for each session"""
+    # Fetch sessions for the logged-in user
+    sessions = PokerSession.objects.filter(player=request.user).order_by('date')
+    
+    # Create a DataFrame from the queryset
+    data = {
+        'date': [session.date for session in sessions],
+        'profit': [session.win_loss for session in sessions],
+    }
+    df = pd.DataFrame(data)
+    
+    # Create the bar chart
+    fig = px.bar(df.sort_values("date"), x="date", y="profit", title="Profit per Session")
+    fig.update_layout(yaxis_title="Profit $")
+    
+    # Convert the Plotly figure to JSON
+    chart_json = fig.to_json()
+
+    return render(request, 'poker/profit_per_session_chart.html', {'chart_json': chart_json})
 
 
 @login_required

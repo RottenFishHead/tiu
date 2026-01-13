@@ -7,9 +7,10 @@
 
 <form method="GET" action="{% url 'poker:overall_chart' %}">
 
-    {{ form|crispy }}
+    {{ form.as_p }}
 
     <button class='m-2'>Submit</button><a href="{% url 'poker:overall_chart' %}">Reset</a>
+</form>
 
 {{ chart|safe }}
 

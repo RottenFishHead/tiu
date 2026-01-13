@@ -36,7 +36,7 @@
                     <li><a class="dropdown-item" href="{% url 'poker:all_sessions' %}">All Sessions</a></li>
                     <li><a class="dropdown-item" href="{% url 'poker:session_list_by_month' %}">Sessions by Month</a></li>
                     <li><a class="dropdown-item" href="{% url 'poker:session_list_25' %}">2/5 Sessions Only</a></li>
-                    <li><a class="dropdown-item" href="{% url 'poker:session_list_13' %}">1/3 Sessions</a></li>
+                    <li><a class="dropdown-item" href="{% url 'poker:session_list_23' %}">2/3 Sessions</a></li>
                     <li><a class="dropdown-item" href="{% url 'poker:add_session' %}">Add Session</a></li>
                 </ul>
               </li>
@@ -46,9 +46,10 @@
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown2">
                   <li><a class="dropdown-item" href="{% url 'poker:overall_chart' %}">Individual Sessions Chart</a></li>
-                  <li><a class="dropdown-item" href="{% url 'poker:all_sessions_chart' %}">Total Earned Chart</a></li>
+                  <li><a class="dropdown-item" href="{% url 'poker:all_sessions_chart' %}">Bankroll/Profit</a></li>
                   <li><a class="dropdown-item" href="{% url 'poker:daily_winloss_chart' %}">Daily Win/Loss Chart</a></li>
-                  <li><a class="dropdown-item" href="{% url 'poker:chart_25' %}">2/5 Chart</a></li>
+                  <li><a class="dropdown-item" href="{% url 'poker:profit_per_session_chart' %}">Profit per Session Chart</a></li>
+                  <li><a class="dropdown-item" href="{% url 'poker:chart_25' %}">Limits Chart</a></li>
                 </ul>
               </li>
               <li class="nav-item dropdown">

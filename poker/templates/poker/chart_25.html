@@ -1,17 +1,39 @@
 {% extends 'poker/base.html' %}
 
-
-
-
 {% block content %}
-
-<form method="GET" action="{% url 'poker:overall_chart' %}">
-
-    {{ form|crispy }}
-
-    <button class='m-2'>Submit</button><a href="{% url 'poker:overall_chart' %}">Reset</a>
-
-{{ chart|safe }}
-
-
+<div class="container mt-4">
+    <h1 class="mb-4">Profit per Session by Stakes</h1>
+    
+    <!-- Filter Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-6">
+                    <label for="stakes" class="form-label">Stakes</label>
+                    <select name="stakes" id="stakes" class="form-select">
+                        {% for value, label in stakes_choices %}
+                            {% if value != '00' %}
+                            <option value="{{ value }}" {% if selected_stakes == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-6 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Filter</button>
+                    <a href="{% url 'poker:chart_25' %}" class="btn btn-secondary">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Chart -->
+    <div class="card">
+        <div class="card-body">
+            {{ chart|safe }}
+        </div>
+    </div>
+</div>
 {% endblock content %}
