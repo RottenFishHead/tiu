@@ -666,3 +666,198 @@ def export_mileage_entries_json(request):
     response = JsonResponse(data, safe=False, json_dumps_params={'indent': 2})
     response['Content-Disposition'] = f'attachment; filename="mileage_entries_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json"'
     return response
+
+
+def monthly_compensation_report(request):
+    """
+    View showing time and driving data with compensation grouped by month.
+    """
+    from django.db.models.functions import TruncMonth
+    from datetime import datetime
+    
+    # Get year filter if provided
+    year = request.GET.get('year')
+    month = request.GET.get('month')
+    
+    # Get all work entries and mileage entries
+    work_entries = WorkEntry.objects.all()
+    mileage_entries = MileageEntry.objects.all()
+    
+    # Apply filters if provided
+    if year:
+        work_entries = work_entries.filter(date__year=year)
+        mileage_entries = mileage_entries.filter(date__year=year)
+    if month:
+        work_entries = work_entries.filter(date__month=month)
+        mileage_entries = mileage_entries.filter(date__month=month)
+    
+    # Group by month
+    work_by_month = work_entries.annotate(
+        month=TruncMonth('date')
+    ).values('month').annotate(
+        total_hours=Sum('hours'),
+        total_amount=Sum('amount')
+    ).order_by('-month')
+    
+    mileage_by_month = mileage_entries.annotate(
+        month=TruncMonth('date')
+    ).values('month').annotate(
+        total_miles=Sum('miles'),
+        total_amount=Sum('amount')
+    ).order_by('-month')
+    
+    # Combine data by month
+    monthly_data = {}
+    
+    for entry in work_by_month:
+        month_key = entry['month']
+        if month_key not in monthly_data:
+            monthly_data[month_key] = {
+                'month': month_key,
+                'hours': Decimal('0.00'),
+                'hours_amount': Decimal('0.00'),
+                'miles': Decimal('0.00'),
+                'mileage_amount': Decimal('0.00'),
+            }
+        monthly_data[month_key]['hours'] = entry['total_hours'] or Decimal('0.00')
+        monthly_data[month_key]['hours_amount'] = entry['total_amount'] or Decimal('0.00')
+    
+    for entry in mileage_by_month:
+        month_key = entry['month']
+        if month_key not in monthly_data:
+            monthly_data[month_key] = {
+                'month': month_key,
+                'hours': Decimal('0.00'),
+                'hours_amount': Decimal('0.00'),
+                'miles': Decimal('0.00'),
+                'mileage_amount': Decimal('0.00'),
+            }
+        monthly_data[month_key]['miles'] = entry['total_miles'] or Decimal('0.00')
+        monthly_data[month_key]['mileage_amount'] = entry['total_amount'] or Decimal('0.00')
+    
+    # Calculate totals for each month
+    for month_key in monthly_data:
+        monthly_data[month_key]['total_compensation'] = (
+            monthly_data[month_key]['hours_amount'] + 
+            monthly_data[month_key]['mileage_amount']
+        )
+    
+    # Convert to sorted list
+    monthly_list = sorted(monthly_data.values(), key=lambda x: x['month'], reverse=True)
+    
+    # Get available years for filter
+    all_years = WorkEntry.objects.dates('date', 'year', order='DESC')
+    all_months = [(i, calendar.month_name[i]) for i in range(1, 13)]
+    
+    context = {
+        'monthly_data': monthly_list,
+        'years': all_years,
+        'months': all_months,
+        'selected_year': year,
+        'selected_month': month,
+    }
+    
+    return render(request, 'john/monthly_compensation_report.html', context)
+
+
+def export_monthly_compensation_pdf(request):
+    """
+    Export monthly compensation report to PDF.
+    """
+    from django.http import HttpResponse
+    from django.template.loader import render_to_string
+    from weasyprint import HTML
+    from django.db.models.functions import TruncMonth
+    import tempfile
+    
+    # Get year and month filters
+    year = request.GET.get('year')
+    month = request.GET.get('month')
+    
+    # Get data
+    work_entries = WorkEntry.objects.all()
+    mileage_entries = MileageEntry.objects.all()
+    
+    if year:
+        work_entries = work_entries.filter(date__year=year)
+        mileage_entries = mileage_entries.filter(date__year=year)
+    if month:
+        work_entries = work_entries.filter(date__month=month)
+        mileage_entries = mileage_entries.filter(date__month=month)
+    
+    # Group by month
+    work_by_month = work_entries.annotate(
+        month=TruncMonth('date')
+    ).values('month').annotate(
+        total_hours=Sum('hours'),
+        total_amount=Sum('amount')
+    ).order_by('-month')
+    
+    mileage_by_month = mileage_entries.annotate(
+        month=TruncMonth('date')
+    ).values('month').annotate(
+        total_miles=Sum('miles'),
+        total_amount=Sum('amount')
+    ).order_by('-month')
+    
+    # Combine data
+    monthly_data = {}
+    
+    for entry in work_by_month:
+        month_key = entry['month']
+        if month_key not in monthly_data:
+            monthly_data[month_key] = {
+                'month': month_key,
+                'hours': Decimal('0.00'),
+                'hours_amount': Decimal('0.00'),
+                'miles': Decimal('0.00'),
+                'mileage_amount': Decimal('0.00'),
+            }
+        monthly_data[month_key]['hours'] = entry['total_hours'] or Decimal('0.00')
+        monthly_data[month_key]['hours_amount'] = entry['total_amount'] or Decimal('0.00')
+    
+    for entry in mileage_by_month:
+        month_key = entry['month']
+        if month_key not in monthly_data:
+            monthly_data[month_key] = {
+                'month': month_key,
+                'hours': Decimal('0.00'),
+                'hours_amount': Decimal('0.00'),
+                'miles': Decimal('0.00'),
+                'mileage_amount': Decimal('0.00'),
+            }
+        monthly_data[month_key]['miles'] = entry['total_miles'] or Decimal('0.00')
+        monthly_data[month_key]['mileage_amount'] = entry['total_amount'] or Decimal('0.00')
+    
+    # Calculate totals
+    for month_key in monthly_data:
+        monthly_data[month_key]['total_compensation'] = (
+            monthly_data[month_key]['hours_amount'] + 
+            monthly_data[month_key]['mileage_amount']
+        )
+    
+    monthly_list = sorted(monthly_data.values(), key=lambda x: x['month'], reverse=True)
+    
+    # Render HTML template
+    html_string = render_to_string('john/monthly_compensation_pdf.html', {
+        'monthly_data': monthly_list,
+        'year': year,
+        'month': month,
+        'generated_date': timezone.now(),
+    })
+    
+    # Generate PDF
+    html = HTML(string=html_string)
+    pdf = html.write_pdf()
+    
+    # Create response
+    response = HttpResponse(pdf, content_type='application/pdf')
+    filename = f'compensation_report'
+    if year and month:
+        filename += f'_{year}_{month}'
+    elif year:
+        filename += f'_{year}'
+    filename += '.pdf'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    return response

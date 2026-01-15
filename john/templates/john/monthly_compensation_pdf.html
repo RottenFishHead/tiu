@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Monthly Compensation Report</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 1cm;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 20pt;
+            color: #2c5aa0;
+        }
+        
+        .meta {
+            margin-top: 10px;
+            font-size: 9pt;
+            color: #666;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th {
+            background-color: #2c5aa0;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        th.number {
+            text-align: right;
+        }
+        
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        td.number {
+            text-align: right;
+        }
+        
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tfoot {
+            background-color: #e8e8e8;
+            font-weight: bold;
+        }
+        
+        tfoot td {
+            padding: 12px 10px;
+            border-top: 2px solid #333;
+            border-bottom: 2px solid #333;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+            font-size: 9pt;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Monthly Compensation Report</h1>
+        <div class="meta">
+            {% if year and month %}
+                Period: {{ month|date:"F" }} {{ year }}
+            {% elif year %}
+                Period: {{ year }}
+            {% else %}
+                Period: All Time
+            {% endif %}
+            <br>
+            Generated: {{ generated_date|date:"F d, Y g:i A" }}
+        </div>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th class="number">Total Hours</th>
+                <th class="number">Hours Compensation</th>
+                <th class="number">Total Miles</th>
+                <th class="number">Mileage Compensation</th>
+                <th class="number">Total Compensation</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for data in monthly_data %}
+            <tr>
+                <td>{{ data.month|date:"F Y" }}</td>
+                <td class="number">{{ data.hours|floatformat:2 }}</td>
+                <td class="number">${{ data.hours_amount|floatformat:2 }}</td>
+                <td class="number">{{ data.miles|floatformat:2 }}</td>
+                <td class="number">${{ data.mileage_amount|floatformat:2 }}</td>
+                <td class="number">${{ data.total_compensation|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; color: #999;">No data available for the selected period</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        {% if monthly_data %}
+        <tfoot>
+            <tr>
+                <td>Grand Total</td>
+                <td class="number">{{ monthly_data|sum_hours }}</td>
+                <td class="number">${{ monthly_data|sum_hours_amount }}</td>
+                <td class="number">{{ monthly_data|sum_miles }}</td>
+                <td class="number">${{ monthly_data|sum_mileage_amount }}</td>
+                <td class="number">${{ monthly_data|sum_total_compensation }}</td>
+            </tr>
+        </tfoot>
+        {% endif %}
+    </table>
+    
+    <div class="footer">
+        This report was automatically generated on {{ generated_date|date:"F d, Y" }}
+    </div>
+</body>
+</html>

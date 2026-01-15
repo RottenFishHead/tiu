@@ -21,6 +21,8 @@ urlpatterns = [
     path("mileage/<int:pk>/edit/", views.mileage_entry_edit, name="mileage_entry_edit"),
     path("mileage/<int:pk>/delete/", views.mileage_entry_delete, name="mileage_entry_delete"),
     path("reports/summary/", views.monthly_summary, name="monthly_summary"),
+    path("reports/compensation/", views.monthly_compensation_report, name="monthly_compensation_report"),
+    path("reports/compensation/pdf/", views.export_monthly_compensation_pdf, name="export_compensation_pdf"),
     
     # Export URLs
     path("export/all/", views.export_john_data, name="export_all"),
