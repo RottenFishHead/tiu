@@ -1,4 +1,5 @@
 {% extends "john/base.html" %}
+{% load john_extras %}
 
 {% block title %}Monthly Compensation Report{% endblock %}
 
@@ -80,11 +81,11 @@
                     <tfoot class="table-secondary">
                         <tr>
                             <th>Grand Total</th>
-                            <th class="text-end">{{ monthly_data|sum_attr:"hours"|floatformat:2 }}</th>
-                            <th class="text-end">${{ monthly_data|sum_attr:"hours_amount"|floatformat:2 }}</th>
-                            <th class="text-end">{{ monthly_data|sum_attr:"miles"|floatformat:2 }}</th>
-                            <th class="text-end">${{ monthly_data|sum_attr:"mileage_amount"|floatformat:2 }}</th>
-                            <th class="text-end"><strong>${{ monthly_data|sum_attr:"total_compensation"|floatformat:2 }}</strong></th>
+                            <th class="text-end">{{ monthly_data|sum_hours|floatformat:2 }}</th>
+                            <th class="text-end">${{ monthly_data|sum_hours_amount }}</th>
+                            <th class="text-end">{{ monthly_data|sum_miles|floatformat:2 }}</th>
+                            <th class="text-end">${{ monthly_data|sum_mileage_amount }}</th>
+                            <th class="text-end"><strong>${{ monthly_data|sum_total_compensation }}</strong></th>
                         </tr>
                     </tfoot>
                     {% endif %}
@@ -93,7 +94,4 @@
         </div>
     </div>
 </div>
-
-<!-- Custom filter for summing attributes -->
-{% load john_extras %}
 {% endblock %}
