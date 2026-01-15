@@ -762,13 +762,17 @@ def monthly_compensation_report(request):
 
 def export_monthly_compensation_pdf(request):
     """
-    Export monthly compensation report to PDF.
+    Export monthly compensation report to PDF using ReportLab.
     """
     from django.http import HttpResponse
-    from django.template.loader import render_to_string
-    from weasyprint import HTML
     from django.db.models.functions import TruncMonth
-    import tempfile
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.lib.enums import TA_CENTER, TA_RIGHT
+    import io
     
     # Get year and month filters
     year = request.GET.get('year')
@@ -838,19 +842,105 @@ def export_monthly_compensation_pdf(request):
     
     monthly_list = sorted(monthly_data.values(), key=lambda x: x['month'], reverse=True)
     
-    # Render HTML template
-    html_string = render_to_string('john/monthly_compensation_pdf.html', {
-        'monthly_data': monthly_list,
-        'year': year,
-        'month': month,
-        'generated_date': timezone.now(),
-    })
+    # Create PDF
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
+    elements = []
     
-    # Generate PDF
-    html = HTML(string=html_string)
-    pdf = html.write_pdf()
+    # Styles
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#2c5aa0'),
+        spaceAfter=30,
+        alignment=TA_CENTER
+    )
     
-    # Create response
+    # Title
+    title = Paragraph("Monthly Compensation Report", title_style)
+    elements.append(title)
+    
+    # Period info
+    period_text = ""
+    if year and month:
+        period_text = f"Period: {calendar.month_name[int(month)]} {year}"
+    elif year:
+        period_text = f"Period: {year}"
+    else:
+        period_text = "Period: All Time"
+    
+    period_style = ParagraphStyle('Period', parent=styles['Normal'], alignment=TA_CENTER, fontSize=10, textColor=colors.grey)
+    elements.append(Paragraph(period_text, period_style))
+    elements.append(Paragraph(f"Generated: {timezone.now().strftime('%B %d, %Y %I:%M %p')}", period_style))
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Table data
+    data = [['Month', 'Total Hours', 'Hours Comp.', 'Total Miles', 'Mileage Comp.', 'Total Comp.']]
+    
+    grand_hours = Decimal('0.00')
+    grand_hours_amount = Decimal('0.00')
+    grand_miles = Decimal('0.00')
+    grand_mileage_amount = Decimal('0.00')
+    grand_total = Decimal('0.00')
+    
+    for item in monthly_list:
+        data.append([
+            item['month'].strftime('%B %Y'),
+            f"{float(item['hours']):.2f}",
+            f"${float(item['hours_amount']):.2f}",
+            f"{float(item['miles']):.2f}",
+            f"${float(item['mileage_amount']):.2f}",
+            f"${float(item['total_compensation']):.2f}"
+        ])
+        grand_hours += item['hours']
+        grand_hours_amount += item['hours_amount']
+        grand_miles += item['miles']
+        grand_mileage_amount += item['mileage_amount']
+        grand_total += item['total_compensation']
+    
+    # Add totals row
+    if monthly_list:
+        data.append([
+            'Grand Total',
+            f"{float(grand_hours):.2f}",
+            f"${float(grand_hours_amount):.2f}",
+            f"{float(grand_miles):.2f}",
+            f"${float(grand_mileage_amount):.2f}",
+            f"${float(grand_total):.2f}"
+        ])
+    
+    # Create table
+    table = Table(data, colWidths=[1.8*inch, 0.9*inch, 1*inch, 0.9*inch, 1*inch, 1*inch])
+    
+    # Table style
+    table_style = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c5aa0')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('ALIGN', (0, 1), (0, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -2), colors.beige),
+        ('GRID', (0, 0), (-1, -2), 1, colors.black),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
+        ('LINEABOVE', (0, -1), (-1, -1), 2, colors.black),
+        ('LINEBELOW', (0, -1), (-1, -1), 2, colors.black),
+    ])
+    
+    table.setStyle(table_style)
+    elements.append(table)
+    
+    # Build PDF
+    doc.build(elements)
+    
+    # Get the value from the buffer and create response
+    pdf = buffer.getvalue()
+    buffer.close()
+    
     response = HttpResponse(pdf, content_type='application/pdf')
     filename = f'compensation_report'
     if year and month:
