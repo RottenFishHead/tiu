@@ -17,7 +17,7 @@ if not SECRET_KEY:
     raise ValueError("The SECRET_KEY environment variable is not set.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['thisisus.fly.dev', 'localhost', '127.0.0.1', 'https://thisisus.fly.dev']
 
@@ -105,9 +105,11 @@ SESSION_COOKIE_AGE = 15552000  # 6 months in seconds
 # Allow session cookies to persist even after the browser is closed
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
-SESSION_COOKIE_SECURE = True  # Ensures cookies are sent over HTTPS only
+# Only use secure cookies in production (when DEBUG=False)
+SESSION_COOKIE_SECURE = not DEBUG  # Ensures cookies are sent over HTTPS only in production
 SESSION_COOKIE_HTTPONLY = True  # Prevents JavaScript access to session cookies
 SESSION_COOKIE_SAMESITE = 'Lax'  # Protects against CSRF attacks
+CSRF_COOKIE_SECURE = not DEBUG  # Also allow CSRF cookies to work on localhost
 
 STORAGES = {
     "default": {
