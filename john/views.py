@@ -745,6 +745,31 @@ def monthly_compensation_report(request):
     # Convert to sorted list
     monthly_list = sorted(monthly_data.values(), key=lambda x: x['month'], reverse=True)
     
+    # Get individual entries for detailed view (with edit capability)
+    work_entries_list = work_entries.order_by('-date')
+    mileage_entries_list = mileage_entries.order_by('-date')
+    
+    # Group entries by month for expandable sections
+    work_by_month_detailed = {}
+    for entry in work_entries_list:
+        month_key = entry.date.replace(day=1)
+        if month_key not in work_by_month_detailed:
+            work_by_month_detailed[month_key] = []
+        work_by_month_detailed[month_key].append(entry)
+    
+    mileage_by_month_detailed = {}
+    for entry in mileage_entries_list:
+        month_key = entry.date.replace(day=1)
+        if month_key not in mileage_by_month_detailed:
+            mileage_by_month_detailed[month_key] = []
+        mileage_by_month_detailed[month_key].append(entry)
+    
+    # Add entry details to monthly_list
+    for month_data in monthly_list:
+        month_key = month_data['month'].replace(day=1)
+        month_data['work_entries'] = work_by_month_detailed.get(month_key, [])
+        month_data['mileage_entries'] = mileage_by_month_detailed.get(month_key, [])
+    
     # Get available years for filter
     all_years = WorkEntry.objects.dates('date', 'year', order='DESC')
     all_months = [(i, calendar.month_name[i]) for i in range(1, 13)]

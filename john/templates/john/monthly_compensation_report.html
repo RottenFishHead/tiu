@@ -5,7 +5,12 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h1 class="mb-4">Monthly Compensation Report</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Monthly Compensation Report</h1>
+        <a href="{% url 'john:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
     
     <!-- Filter Form -->
     <div class="card mb-4">
@@ -64,13 +69,105 @@
                     <tbody>
                         {% for data in monthly_data %}
                         <tr>
-                            <td><strong>{{ data.month|date:"F Y" }}</strong></td>
+                            <td>
+                                <strong>{{ data.month|date:"F Y" }}</strong>
+                                {% if data.work_entries or data.mileage_entries %}
+                                <button class="btn btn-sm btn-outline-secondary ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#details-{{ data.month|date:'Y-m' }}" aria-expanded="false">
+                                    <i class="bi bi-chevron-down"></i> Details
+                                </button>
+                                {% endif %}
+                            </td>
                             <td class="text-end">{{ data.hours|floatformat:2 }}</td>
                             <td class="text-end">${{ data.hours_amount|floatformat:2 }}</td>
                             <td class="text-end">{{ data.miles|floatformat:2 }}</td>
                             <td class="text-end">${{ data.mileage_amount|floatformat:2 }}</td>
                             <td class="text-end"><strong>${{ data.total_compensation|floatformat:2 }}</strong></td>
                         </tr>
+                        
+                        <!-- Expandable detailed entries -->
+                        {% if data.work_entries or data.mileage_entries %}
+                        <tr class="collapse" id="details-{{ data.month|date:'Y-m' }}">
+                            <td colspan="6" class="p-0">
+                                <div class="p-3 bg-light">
+                                    {% if data.work_entries %}
+                                    <h6 class="mb-3"><i class="bi bi-clock"></i> Work Hours</h6>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-sm table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Start Time</th>
+                                                    <th>End Time</th>
+                                                    <th>Hours</th>
+                                                    <th>Rate</th>
+                                                    <th>Amount</th>
+                                                    <th>Description</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for entry in data.work_entries %}
+                                                <tr>
+                                                    <td>{{ entry.date }}</td>
+                                                    <td>{% if entry.start_time %}{{ entry.start_time|time:"g:i A" }}{% else %}-{% endif %}</td>
+                                                    <td>{% if entry.end_time %}{{ entry.end_time|time:"g:i A" }}{% else %}-{% endif %}</td>
+                                                    <td>{{ entry.hours|floatformat:2 }}</td>
+                                                    <td>${{ entry.hourly_rate|floatformat:2 }}</td>
+                                                    <td>${{ entry.amount|floatformat:2 }}</td>
+                                                    <td>{{ entry.description }}</td>
+                                                    <td>
+                                                        <a href="{% url 'john:time_entry_edit' entry.pk %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if data.mileage_entries %}
+                                    <h6 class="mb-3"><i class="bi bi-speedometer2"></i> Mileage</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Start Odometer</th>
+                                                    <th>End Odometer</th>
+                                                    <th>Miles</th>
+                                                    <th>Rate</th>
+                                                    <th>Amount</th>
+                                                    <th>Description</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for entry in data.mileage_entries %}
+                                                <tr>
+                                                    <td>{{ entry.date }}</td>
+                                                    <td>{% if entry.starting_mileage %}{{ entry.starting_mileage|floatformat:1 }}{% else %}-{% endif %}</td>
+                                                    <td>{% if entry.ending_mileage %}{{ entry.ending_mileage|floatformat:1 }}{% else %}-{% endif %}</td>
+                                                    <td>{{ entry.miles|floatformat:2 }}</td>
+                                                    <td>${{ entry.rate_per_mile|floatformat:3 }}</td>
+                                                    <td>${{ entry.amount|floatformat:2 }}</td>
+                                                    <td>{{ entry.description }}</td>
+                                                    <td>
+                                                        <a href="{% url 'john:mileage_entry_edit' entry.pk %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endif %}
                         {% empty %}
                         <tr>
                             <td colspan="6" class="text-center text-muted">No data available for the selected period</td>
