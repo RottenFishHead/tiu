@@ -18,6 +18,7 @@ if not SECRET_KEY:
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+SERVE_MEDIA = os.environ.get('SERVE_MEDIA', 'False') == 'True'
 
 ALLOWED_HOSTS = ['thisisus.fly.dev', 'localhost', '127.0.0.1', 'https://thisisus.fly.dev']
 
