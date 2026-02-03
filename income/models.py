@@ -15,10 +15,13 @@ class Income(models.Model):
     source = models.ForeignKey(Source, on_delete=models.CASCADE, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    location = models.CharField(max_length=200, blank=True, null=True, help_text="Location where income was earned (e.g., casino name)")
     created = models.DateField(default=now)
  
-    def __init__(self, source):
-        self.source = source
+    def __init__(self, source=None):
+        super().__init__()
+        if source:
+            self.source = source
 
     def __str__(self):
         return str(self.source)

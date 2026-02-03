@@ -1,10 +1,10 @@
 # views.py
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import IncomeForm
+from .forms import IncomeForm, PokerWinningsForm
 from django.shortcuts import render
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
-from .models import Income
+from .models import Income, Source
 from expenses.models import Expense, FixedExpense
 from datetime import datetime, date
 
@@ -88,3 +88,27 @@ def monthly_income_view(request):
     }
 
     return render(request, 'income/monthly_income.html', context)
+
+
+@login_required
+def add_poker_winnings(request):
+    """
+    View specifically for adding poker winnings to income.
+    Automatically sets the source to 'Poker' and user to current user.
+    """
+    if request.method == 'POST':
+        form = PokerWinningsForm(request.POST)
+        if form.is_valid():
+            income = form.save(commit=False)
+            income.user = request.user
+            
+            # Get or create 'Poker' source
+            poker_source, created = Source.objects.get_or_create(name='Poker')
+            income.source = poker_source
+            
+            income.save()
+            return redirect('income:income_list')
+    else:
+        form = PokerWinningsForm(initial={'created': date.today()})
+    
+    return render(request, 'income/poker_winnings_form.html', {'form': form})
