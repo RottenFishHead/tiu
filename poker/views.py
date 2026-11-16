@@ -665,63 +665,165 @@ def session_hands(request):
 
 @login_required
 def all_sessions_chart(request):
-    """Bankroll / Cumulative Profit Over Time chart starting at $2000"""
-    # Fetch data from the database for the logged-in user
+    """Bankroll / Cumulative Profit Over Time chart starting at $2000."""
     sessions = PokerSession.objects.filter(player=request.user).order_by('date')
-
-    # Create a DataFrame from the queryset
     data = {
         'date': [session.date for session in sessions],
         'profit': [session.win_loss for session in sessions],
     }
     df = pd.DataFrame(data)
 
-    # Sort by date and calculate cumulative profit
-    df = df.sort_values("date")
-    df["cum_profit"] = df["profit"].cumsum()
-    
-    # Add starting bankroll of $2000
-    starting_bankroll = 2000
-    df["bankroll"] = starting_bankroll + df["cum_profit"]
+    if df.empty:
+        fig = go.Figure()
+        fig.update_layout(
+            title="No poker sessions recorded yet",
+            xaxis_title="Date",
+            yaxis_title="Bankroll ($)",
+            annotations=[
+                dict(
+                    text="Add a session to start tracking bankroll stats.",
+                    x=0.5,
+                    y=0.5,
+                    xref="paper",
+                    yref="paper",
+                    showarrow=False,
+                    font=dict(size=16),
+                )
+            ],
+        )
+    else:
+        df = df.sort_values("date")
+        df["cum_profit"] = df["profit"].cumsum()
 
-    # Create the Plotly Express chart
-    fig = px.line(df, x="date", y="bankroll", title="Bankroll Over Time")
-    fig.update_layout(
-        yaxis_title="Bankroll ($)",
-        xaxis_title="Date",
-        hovermode='x unified'
-    )
-    
-    # Add a horizontal line at starting bankroll
-    fig.add_hline(y=starting_bankroll, line_dash="dash", line_color="gray", 
-                  annotation_text=f"Starting Bankroll: ${starting_bankroll}")
+        starting_bankroll = 2000
+        df["bankroll"] = starting_bankroll + df["cum_profit"]
+
+        fig = px.line(df, x="date", y="bankroll", title="Bankroll Over Time")
+        fig.update_layout(
+            yaxis_title="Bankroll ($)",
+            xaxis_title="Date",
+            hovermode='x unified'
+        )
+        fig.add_hline(
+            y=starting_bankroll,
+            line_dash="dash",
+            line_color="gray",
+            annotation_text=f"Starting Bankroll: ${starting_bankroll}"
+        )
+
     finalize_plotly_figure(fig)
-
-    # Convert the Plotly figure to JSON
     chart_json = fig.to_json()
-
     return render(request, 'poker/all_sessions_chart.html', {'chart_json': chart_json})
 
 
 @login_required
+def all_sessions_buyin_cashout_chart(request):
+    """Compare each session's buy-in to its cash-out with separate bar pairs."""
+    sessions = PokerSession.objects.filter(player=request.user).order_by('date', 'id')
+
+    if not sessions:
+        fig = go.Figure()
+        fig.update_layout(
+            title="No poker sessions recorded yet",
+            xaxis_title="Session Date",
+            yaxis_title="Dollars",
+            annotations=[
+                dict(
+                    text="Add a session to compare buy-ins and cash-outs.",
+                    x=0.5,
+                    y=0.5,
+                    xref="paper",
+                    yref="paper",
+                    showarrow=False,
+                    font=dict(size=16),
+                )
+            ],
+        )
+        finalize_plotly_figure(fig)
+        chart_json = fig.to_json()
+        return render(request, 'poker/all_sessions_buyin_cashout_chart.html', {
+            'chart_json': chart_json,
+            'average_buy_in': 0,
+            'average_cash_out': 0,
+        })
+
+    session_dates = [session.date.isoformat() for session in sessions]
+    buy_in_values = [session.buy_in for session in sessions]
+    cash_out_values = [session.cash_out for session in sessions]
+    average_buy_in = sum(buy_in_values) / len(buy_in_values)
+    average_cash_out = sum(cash_out_values) / len(cash_out_values)
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=session_dates,
+        y=buy_in_values,
+        name='Buy-In',
+        marker_color='rgba(220, 53, 69, 0.8)',
+        customdata=session_dates,
+        hovertemplate='Date: %{customdata}<br>Buy-In: $%{y:,.0f}<extra></extra>'
+    ))
+    fig.add_trace(go.Bar(
+        x=session_dates,
+        y=cash_out_values,
+        name='Cash-Out',
+        marker_color='rgba(40, 167, 69, 0.8)',
+        customdata=session_dates,
+        hovertemplate='Date: %{customdata}<br>Cash-Out: $%{y:,.0f}<extra></extra>'
+    ))
+    fig.update_layout(
+        title='Buy-In vs Cash-Out by Session',
+        xaxis_title='Session Date',
+        yaxis_title='Dollars',
+        barmode='group',
+        hovermode='x unified',
+        legend_title='Session Comparison',
+        xaxis_tickangle=-25,
+    )
+
+    finalize_plotly_figure(fig)
+    chart_json = fig.to_json()
+
+    return render(request, 'poker/all_sessions_buyin_cashout_chart.html', {
+        'chart_json': chart_json,
+        'average_buy_in': average_buy_in,
+        'average_cash_out': average_cash_out,
+    })
+
+
+@login_required
 def profit_per_session_chart(request):
-    """Bar chart showing profit for each session"""
-    # Fetch sessions for the logged-in user
+    """Bar chart showing profit for each session."""
     sessions = PokerSession.objects.filter(player=request.user).order_by('date')
-    
-    # Create a DataFrame from the queryset
+
     data = {
         'date': [session.date for session in sessions],
         'profit': [session.win_loss for session in sessions],
     }
     df = pd.DataFrame(data)
-    
-    # Create the bar chart
-    fig = px.bar(df.sort_values("date"), x="date", y="profit", title="Profit per Session")
-    fig.update_layout(yaxis_title="Profit $")
+
+    if df.empty:
+        fig = go.Figure()
+        fig.update_layout(
+            title="No poker sessions recorded yet",
+            xaxis_title="Date",
+            yaxis_title="Profit $",
+            annotations=[
+                dict(
+                    text="Add a session to view profit statistics.",
+                    x=0.5,
+                    y=0.5,
+                    xref="paper",
+                    yref="paper",
+                    showarrow=False,
+                    font=dict(size=16),
+                )
+            ],
+        )
+    else:
+        fig = px.bar(df.sort_values("date"), x="date", y="profit", title="Profit per Session")
+        fig.update_layout(yaxis_title="Profit $")
+
     finalize_plotly_figure(fig)
-    
-    # Convert the Plotly figure to JSON
     chart_json = fig.to_json()
 
     return render(request, 'poker/profit_per_session_chart.html', {'chart_json': chart_json})

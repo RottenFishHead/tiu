@@ -51,8 +51,9 @@ class PostForm(forms.ModelForm):
                 'max': 5.0,
                 'placeholder': 'Rate health (0.5 - 5.0)'
             }),
-            'image': forms.FileInput(attrs={
-                'class': 'form-control'
+            'image': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*',
             }),
             'status': forms.Select(attrs={
                 'class': 'form-select'

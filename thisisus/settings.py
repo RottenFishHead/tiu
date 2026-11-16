@@ -15,8 +15,7 @@ environ.Env.read_env(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-
-SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY') or os.environ.get('DJANGO_SECRET_KEY')
 if not SECRET_KEY:
     raise ValueError("The SECRET_KEY environment variable is not set.")
 
@@ -24,7 +23,24 @@ if not SECRET_KEY:
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 SERVE_MEDIA = os.environ.get('SERVE_MEDIA', 'False') == 'True'
 
-ALLOWED_HOSTS = ['thisisus.fly.dev', 'localhost', '127.0.0.1', 'https://thisisus.fly.dev']
+default_hosts = ['localhost', '127.0.0.1', 'thisisus.fly.dev']
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get('DJANGO_ALLOWED_HOSTS', ','.join(default_hosts)).split(',')
+    if host.strip()
+]
+
+# In production behind Fly.io, only the origin host should be trusted, not the full URL.
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        'CSRF_TRUSTED_ORIGINS',
+        'https://thisisus.fly.dev',
+    ).split(',')
+    if origin.strip()
+]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Application definition
@@ -61,7 +77,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'thisisus.urls'
-CSRF_TRUSTED_ORIGINS = ['https://thisisus.fly.dev/']
 
 TEMPLATES = [
     {
@@ -213,6 +228,8 @@ if R2_CONFIGURED:
     AWS_S3_REGION_NAME = "auto"
     AWS_S3_SIGNATURE_VERSION = "s3v4"
     AWS_DEFAULT_ACL = None
+    # Keep uploads with matching filenames from replacing other posts' pictures.
+    AWS_S3_FILE_OVERWRITE = False
 
     # Public URL used when Django generates image/file URLs
     AWS_S3_CUSTOM_DOMAIN = (

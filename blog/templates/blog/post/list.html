@@ -8,7 +8,7 @@
     <div>
       <p class="blog-kicker mb-2">This Is Us Blog</p>
       <h1 class="display-4 mb-3">Stories, updates, and memories</h1>
-      <p class="lead mb-0">A cleaner view of the family journal, with draft notes visible to their author.</p>
+      <p class="lead mb-0">Journaling the days.</p>
     </div>
     <div class="blog-hero__card">
       <div class="small text-uppercase text-light fw-semibold mb-1">Latest flow</div>
@@ -57,7 +57,7 @@
           
           {% if user.is_authenticated and post.author == user %}
           <a href="{% url 'blog:post_edit' post.id %}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-pencil"></i>
+            <i class="bi bi-pencil" aria-hidden="true"></i> Edit
           </a>
           {% endif %}
         </div>
