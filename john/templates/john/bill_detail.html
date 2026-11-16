@@ -71,6 +71,12 @@
                   {% endif %}
                 </td>
               </tr>
+              {% if bill.payment_instructions %}
+                <tr>
+                  <th>How to Pay:</th>
+                  <td>{{ bill.payment_instructions|linebreaks }}</td>
+                </tr>
+              {% endif %}
               {% if bill.notes %}
                 <tr>
                   <th>Notes:</th>

@@ -99,25 +99,13 @@ WSGI_APPLICATION = 'thisisus.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
+# Uses DATABASE_URL when set (production on Fly); otherwise falls back to
+# the local SQLite database for development.
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),  # Load DATABASE_URL from .env
-        conn_max_age=600,  # Optional: Keep database connections open for 600 seconds
-        conn_health_checks=True,  # Optional: Enable connection health checks
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,  # Keep database connections open for 600 seconds
+        conn_health_checks=True,  # Enable connection health checks
     )
 }
 

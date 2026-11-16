@@ -24,17 +24,29 @@ class BillForm(forms.ModelForm):
             "scheduled_date",
             "is_auto_pay",
             "account",
+            "payment_instructions",
             "notes",
         ]
         widgets = {
             "due_day": forms.NumberInput(attrs={"type": "number", "min": 1, "max": 31}),
             "scheduled_date": forms.DateInput(attrs={"type": "date"}),
+            "payment_instructions": forms.Textarea(attrs={"rows": 3}),
             "notes": forms.Textarea(attrs={"rows": 3}),
         }
         help_texts = {
             "due_day": "For a recurring monthly bill, enter its day of the month.",
             "scheduled_date": "For a one-time bill, choose its exact due date instead.",
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Payment instructions are set when the bill is created; after that
+        # they can only be changed in the admin. A disabled field ignores any
+        # submitted value and keeps the instance's existing value.
+        if self.instance and self.instance.pk:
+            field = self.fields["payment_instructions"]
+            field.disabled = True
+            field.help_text = "Read only. Payment instructions can only be changed in the admin."
 
 
 class PayBillForm(BootstrapFormMixin, forms.ModelForm):

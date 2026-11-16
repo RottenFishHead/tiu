@@ -25,7 +25,7 @@ class BillAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_filter = ("active", "is_auto_pay", "account", "due_day", "created_at")
-    search_fields = ("name", "account__name", "notes")
+    search_fields = ("name", "account__name", "notes", "payment_instructions")
     ordering = ("active", "due_day", "name")
     readonly_fields = ("created_at", "updated_at")
     autocomplete_fields = ("account",)

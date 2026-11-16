@@ -38,6 +38,11 @@
                 </span>
               {% endif %}
             </dd>
+
+            {% if bill.payment_instructions %}
+              <dt class="col-sm-4">How to Pay</dt>
+              <dd class="col-sm-8">{{ bill.payment_instructions|linebreaksbr }}</dd>
+            {% endif %}
           </dl>
         </div>
       </div>

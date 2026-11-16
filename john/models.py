@@ -57,6 +57,11 @@ class Bill(models.Model):
         related_name="bills",
     )
 
+    payment_instructions = models.TextField(
+        blank=True,
+        help_text="How to pay this bill (website, phone number, mailing address, etc.).",
+    )
+
     notes = models.TextField(blank=True)
 
     active = models.BooleanField(
