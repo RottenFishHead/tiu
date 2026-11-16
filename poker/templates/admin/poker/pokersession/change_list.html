@@ -1,0 +1,13 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+  {% if totals %}
+    <div style="margin-bottom:1rem;padding:0.75rem;border:1px solid #ddd;background:#f8f9fa;border-radius:6px;">
+      <strong>Totals:</strong>
+      &nbsp;Sessions: {{ totals.total_sessions }}
+      &nbsp;|&nbsp; Total Profit: ${{ totals.total_profit|floatformat:2 }}
+      &nbsp;|&nbsp; Hours: {{ totals.total_hours|floatformat:2 }}
+    </div>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}

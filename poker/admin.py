@@ -1,15 +1,42 @@
 # poker_session/admin.py
 from django.contrib import admin
 from .models import PokerSession, Casino, PlayerTag, PlayerProfile, PlayerTendency,\
-    PlayerObservation, ExploitTag, PlayerExploit
+    PlayerObservation, ExploitTag, PlayerExploit, PokerNote, PokerNoteKeyword, StopIt
+from django.db.models import Sum, F
+from django.template.response import TemplateResponse
 
 @admin.register(PokerSession)
 class PokerSessionAdmin(admin.ModelAdmin):
-    list_display = ['player', 'casino', 'stakes', 'hours', 'buy_in', 'cash_out']
+    list_display = ['player', 'casino', 'stakes', 'hours', 'win_loss', 'win_rate_per_hour']
     list_filter = ['player', 'casino', ]
     search_fields = ['player__username', 'casino__name']
     date_hierarchy = 'date'
     ordering = [ 'date']
+
+    def changelist_view(self, request, extra_context=None):
+        # Provide aggregated totals for the current changelist queryset
+        extra_context = extra_context or {}
+        response = super().changelist_view(request, extra_context=extra_context)
+
+        # When the default response is a TemplateResponse, we can add totals
+        if isinstance(response, TemplateResponse):
+            try:
+                qs = response.context_data['cl'].queryset
+                aggregates = qs.aggregate(
+                    total_sessions=Sum('id'),
+                    total_profit=Sum(F('cash_out') - F('buy_in')),
+                    total_hours=Sum('hours'),
+                )
+                response.context_data['totals'] = {
+                    'total_sessions': aggregates.get('total_sessions') or 0,
+                    'total_profit': aggregates.get('total_profit') or 0,
+                    'total_hours': aggregates.get('total_hours') or 0,
+                }
+            except Exception:
+                # Fail silently if aggregates cannot be computed
+                response.context_data['totals'] = None
+
+        return response
 
 @admin.register(Casino)
 class CasinoAdmin(admin.ModelAdmin):
@@ -62,3 +89,23 @@ class PlayerExploitAdmin(admin.ModelAdmin):
     list_display = ("player", "tag", "strength", "confidence", "updated")
     search_fields = ("player__display_name", "tag__name", "note")
     list_filter = ("confidence",)
+
+
+@admin.register(PokerNote)
+class PokerNoteAdmin(admin.ModelAdmin):
+    list_display = ("player", "title", "is_important", "updated")
+    search_fields = ("title", "note", "keywords__name", "player__username")
+    list_filter = ("is_important", "keywords")
+
+
+@admin.register(PokerNoteKeyword)
+class PokerNoteKeywordAdmin(admin.ModelAdmin):
+    search_fields = ("name",)
+
+
+@admin.register(StopIt)
+class StopItAdmin(admin.ModelAdmin):
+    list_display = ("stop", "state", "fails")
+    list_display_links = ("stop", "state")
+    search_fields = ("stop", "text")
+  

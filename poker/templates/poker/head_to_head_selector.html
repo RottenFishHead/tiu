@@ -1,0 +1,41 @@
+{% extends 'poker/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1 class="mb-3">Head-to-head selector</h1>
+  <form id="hhForm" class="row g-3">
+    <div class="col-md-5">
+      <label for="userA" class="form-label">Player A</label>
+      <select id="userA" class="form-select">
+        <option value="">Select user</option>
+        {% for u in users %}
+        <option value="{{ u.id }}">{{ u.username }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-5">
+      <label for="userB" class="form-label">Player B</label>
+      <select id="userB" class="form-select">
+        <option value="">Select user</option>
+        {% for u in users %}
+        <option value="{{ u.id }}">{{ u.username }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+      <button id="goBtn" class="btn btn-primary w-100" type="submit">Compare</button>
+    </div>
+  </form>
+</div>
+
+<script>
+document.getElementById('hhForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const a = document.getElementById('userA').value;
+  const b = document.getElementById('userB').value;
+  if (!a || !b) return alert('Please select both users');
+  if (a === b) return alert('Select two different users');
+  window.location.href = `{% url 'poker:head_to_head' 0 0 %}`.replace('/0/0/', '/' + a + '/' + b + '/');
+});
+</script>
+{% endblock %}

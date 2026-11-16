@@ -5,16 +5,85 @@
 <style>
     .win { color: green; }
     .loss { color: red; }
+    .important-notes-list {
+        margin: 0;
+        padding-left: 1.2rem;
+    }
+    .important-notes-list li {
+        margin-bottom: 0.45rem;
+    }
 </style>
 
 <h2>Session Detail for Session #{{ session.id }}</h2>
+<div class="card border-danger shadow-sm mb-3">
+    <div class="card-body">
+        <h5 class="mb-2">Stop</h5>
+        {% if displayed_stop %}
+        <p class="mb-2 fw-semibold">
+            <a href="{% url 'poker:stop_detail' displayed_stop.pk %}" class="text-decoration-none">{{ displayed_stop.stop }}</a>
+        </p>
+        <p class="mb-2 text-muted">State: {{ displayed_stop.get_state_display }}</p>
+        <form method="post" class="d-flex flex-wrap gap-2 align-items-center">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_stop_state">
+            <select name="stop_state" class="form-select form-select-sm w-auto">
+                {% for value, label in stop_state_choices %}
+                <option value="{{ value }}" {% if displayed_stop.state == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary">Save State</button>
+            <a href="{% url 'poker:stop_detail' displayed_stop.pk %}" class="btn btn-sm btn-outline-secondary">View Details</a>
+            <a href="{% url 'poker:stop_edit' displayed_stop.pk %}" class="btn btn-sm btn-outline-primary">Open Stop</a>
+        </form>
+        {% else %}
+        <p class="text-muted mb-0">No stop is attached to this session.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if show_important_notes %}
+<div class="card border-warning shadow-sm mb-3">
+    <div class="card-body">
+        <h5 class="mb-2">Important Notes</h5>
+        {% if important_notes %}
+        <ul class="important-notes-list">
+            {% for note in important_notes %}
+            <li>{{ note.note|truncatechars:150 }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted mb-0">No important notes available.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 <p><b>Player:</b> {{ session.player }}</p>
 <p><b>Casino:</b> {{ session.casino }}</p>
 <p><b>Stakes:</b> {{ session.get_stakes_display }}</p>
 <p><b>Date:</b> {{ session.date }}</p>
+<div class="row g-2 mb-1">
+    <div class="col-md-6">
+        <p class="mb-1"><b>Started:</b>
+        {% if session_started_at %}
+        {{ session_started_at|time:"h:i:s A" }}
+        {% else %}
+        -
+        {% endif %}
+        </p>
+    </div>
+    <div class="col-md-6">
+        <p class="mb-1"><b>Ended:</b>
+        {% if session_ended_at %}
+        {{ session_ended_at|time:"h:i:s A" }}
+        {% else %}
+        -
+        {% endif %}
+        </p>
+    </div>
+</div>
 <p><b>Buy In:</b> ${{ session.buy_in}}</p>
 <p><b>Cash Out:</b> ${{ session.cash_out}}</p>
-<p><b>Hours:</b> {{ session.hours}}</p>
+<p><b>Hours:</b> {{ session.hours|floatformat:2 }}</p>
 {% if hands %}
 <p>Tracked Hands: <a href="{% url 'hands:session_hands_list' session.id %}">Hands for session #{{ session.id }}</a></p>
 {% else %}

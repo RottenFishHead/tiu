@@ -9,6 +9,7 @@
       <thead class="thead-dark">
         <tr>
           <th>Date</th>
+          <th>Day</th>
           <th>Stakes</th>
           <th>Hours</th>
           <th>Win/Loss</th>
@@ -23,10 +24,13 @@
               </a>
             </td>
             <td>
+              {{ session.date|date:"l" }}
+            </td>
+            <td>
               {{ session.get_stakes_display }}
             </td>
             <td>
-              {{ session.hours }}
+              {{ session.hours|floatformat:2 }}
             </td>
             <td>
               {% if session.win_loss > 0 %}
@@ -42,7 +46,7 @@
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="2"></td>
+          <td colspan="3"></td>
           <td>
             <strong>
               Overall Hourly Rate:

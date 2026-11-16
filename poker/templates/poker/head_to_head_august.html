@@ -1,0 +1,23 @@
+{% extends 'poker/base.html' %}
+
+{% block content %}
+  <h2>August Head-to-Head</h2>
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% else %}
+    {% if no_data %}
+      <div class="alert alert-info">No sessions found for either user in August.</div>
+    {% else %}
+      <div id="head-to-head-august-chart"></div>
+
+      <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+      <script>
+        (function() {
+          const chartData = {{ chart_json|safe }};
+          const el = document.getElementById('head-to-head-august-chart');
+          Plotly.newPlot(el, chartData.data, chartData.layout || {});
+        })();
+      </script>
+    {% endif %}
+  {% endif %}
+{% endblock %}

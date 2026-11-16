@@ -1,0 +1,61 @@
+{% extends 'poker/base.html' %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">Stops</h1>
+  <a href="{% url 'poker:stop_create' %}" class="btn btn-primary btn-sm">Add Stop</a>
+</div>
+
+<div class="card shadow-sm border-0">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-center mb-3">
+      <div class="col-sm-8 col-md-6 col-lg-5">
+        <input type="search" name="q" value="{{ search_query }}" class="form-control" placeholder="Search stop, state, or fails">
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary btn-sm">Search</button>
+      </div>
+      {% if search_query %}
+      <div class="col-auto">
+        <a href="{% url 'poker:stop_list' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
+      </div>
+      {% endif %}
+    </form>
+
+    {% if stops %}
+    <div class="table-responsive">
+      <table class="table table-sm table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Stop</th>
+            <th>State</th>
+            <th>Fails</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for stop in stops %}
+          <tr>
+            <td>{{ stop.stop }}</td>
+            <td>
+              <span class="badge {% if stop.state == 'mastered' %}bg-success{% elif stop.state == 'working' %}bg-primary{% else %}bg-warning text-dark{% endif %}">
+                {{ stop.get_state_display }}
+              </span>
+            </td>
+            <td>{{ stop.fails }}</td>
+            <td class="text-end">
+              <a href="{% url 'poker:stop_detail' stop.pk %}" class="btn btn-sm btn-outline-secondary">Details</a>
+              <a href="{% url 'poker:stop_edit' stop.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+              <a href="{% url 'poker:stop_delete' stop.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted mb-0">No stops found.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

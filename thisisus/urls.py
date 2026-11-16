@@ -3,11 +3,14 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.views.static import serve
+from django.views.generic import TemplateView
 from django.contrib.auth import views as auth_views
 from blog.views import index
 
 urlpatterns = [
     path('', index, name='index'),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/logout/confirm/', TemplateView.as_view(template_name='registration/logout_confirm.html'), name='logout_confirm'),
     path('admin/', admin.site.urls),
     path('expenses/', include('expenses.urls')),
     path('income/', include('income.urls')),

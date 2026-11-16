@@ -1,0 +1,41 @@
+{% extends "poker/base.html" %}
+
+{% block title %}Stop Detail | Poker{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">Stop Detail</h1>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary" href="{% url 'poker:stop_edit' stop.pk %}">Edit</a>
+    <a class="btn btn-outline-secondary" href="{% url 'poker:stop_list' %}">Back to Stops</a>
+  </div>
+</div>
+
+<div class="card shadow-sm border-0">
+  <div class="card-body">
+    <dl class="row mb-0">
+      <dt class="col-sm-3">Stop</dt>
+      <dd class="col-sm-9 fw-semibold">{{ stop.stop }}</dd>
+
+      <dt class="col-sm-3">State</dt>
+      <dd class="col-sm-9">
+        <span class="badge {% if stop.state == 'mastered' %}bg-success{% elif stop.state == 'working' %}bg-primary{% else %}bg-warning text-dark{% endif %}">
+          {{ stop.get_state_display }}
+        </span>
+      </dd>
+
+      <dt class="col-sm-3">Fails</dt>
+      <dd class="col-sm-9">{{ stop.fails }}</dd>
+
+      <dt class="col-sm-3">Text</dt>
+      <dd class="col-sm-9">
+        {% if stop.text %}
+          {{ stop.text|linebreaksbr }}
+        {% else %}
+          <span class="text-muted">No text added yet.</span>
+        {% endif %}
+      </dd>
+    </dl>
+  </div>
+</div>
+{% endblock %}
