@@ -1,0 +1,31 @@
+{% extends 'poker/base.html' %}
+
+{% block content %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<h1>Buy-In vs Cash-Out</h1>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Average Buy-In</h5>
+                <p class="card-text fs-3 mb-0">${{ average_buy_in|floatformat:0 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Average Cash-Out</h5>
+                <p class="card-text fs-3 mb-0">${{ average_cash_out|floatformat:0 }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="buyInCashOutChart"></div>
+<script>
+    var chartData = JSON.parse('{{ chart_json|escapejs }}');
+    Plotly.newPlot('buyInCashOutChart', chartData.data, chartData.layout);
+</script>
+{% endblock content %}

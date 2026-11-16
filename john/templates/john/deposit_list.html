@@ -1,0 +1,83 @@
+{% extends "john/base.html" %}
+
+{% block title %}Account Deposits - John{% endblock %}
+
+{% block page_header %}
+  <h1 class="mb-1">Account Deposits</h1>
+  <p class="mb-0">Track incoming money by account, date, and method.</p>
+{% endblock %}
+
+{% block content %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+          <label for="year" class="form-label">Year</label>
+          <select id="year" name="year" class="form-select">
+            <option value="">All</option>
+            {% for y in years %}
+              <option value="{{ y|date:'Y' }}" {% if selected_year == y|date:'Y' %}selected{% endif %}>
+                {{ y|date:'Y' }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="month" class="form-label">Month</label>
+          <select id="month" name="month" class="form-select">
+            <option value="">All</option>
+            {% for m in months %}
+              <option value="{{ m|date:'n' }}" {% if selected_month == m|date:'n' %}selected{% endif %}>
+                {{ m|date:'F' }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Apply Filters</button>
+          <a href="{% url 'john:account_deposit_list' %}" class="btn btn-outline-secondary">Reset</a>
+          <a href="{% url 'john:account_deposit_create' %}" class="btn btn-success ms-md-auto">Add Deposit</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h2 class="h6 mb-0">Deposits</h2>
+      <span class="fw-semibold">Total: ${{ total_deposits|floatformat:2 }}</span>
+    </div>
+    <div class="card-body p-0">
+      {% if deposits %}
+        <div class="table-responsive">
+          <table class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>Account</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Memo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for deposit in deposits %}
+                <tr>
+                  <td>{{ deposit.date }}</td>
+                  <td>{{ deposit.account }}</td>
+                  <td class="fw-semibold text-success">${{ deposit.amount|floatformat:2 }}</td>
+                  <td>{{ deposit.get_method_display }}</td>
+                  <td>{{ deposit.memo|default:'-' }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="p-4 text-muted">
+          No deposits found for the selected filters.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

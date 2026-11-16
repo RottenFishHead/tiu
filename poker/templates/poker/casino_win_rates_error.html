@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Casino Win Rates — Error</h1>
+<p>An error occurred while generating the casino win rates page:</p>
+<div class="alert alert-danger">{{ error }}</div>
+<p>If you don't have access to server logs, the full traceback was written to:</p>
+<pre>{{ trace_file }}</pre>
+<p>Open that file in your editor to see the full traceback.</p>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "poker/base.html" %}
+
+{% block content %}
+<div class="container" style="max-width: 520px;">
+  <div class="card shadow-sm mt-4">
+    <div class="card-body">
+      <h1 class="h4 mb-2">Signed Out</h1>
+      <p class="text-muted">You have been logged out of the poker app.</p>
+      <a class="btn btn-success" href="{% url 'login' %}">Login Again</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -3,8 +3,22 @@ from django.urls import reverse
 from django.utils import timezone
 from django.http import JsonResponse
 import json
-from .models import Bill, Account, BillPayment, WorkEntry, MileageEntry
-from .forms import BillForm, PayBillForm, WorkEntryForm, MileageEntryForm
+from .models import (
+    Bill,
+    Account,
+    BillPayment,
+    WorkEntry,
+    MileageEntry,
+    AccountDeposit,
+    AccountWithdrawal,
+)
+from .forms import (
+    BillForm,
+    PayBillForm,
+    WorkEntryForm,
+    MileageEntryForm,
+    AccountDepositForm,
+)
 from datetime import timedelta, date
 from django.db.models import Sum, Q
 from decimal import Decimal
@@ -426,6 +440,83 @@ def mileage_entry_delete(request, pk):
         entry.delete()
         return redirect("john:mileage_entries")
     return render(request, "john/mileage_confirm_delete.html", {"entry": entry})
+
+
+def account_deposit_list(request):
+    """
+    List account deposits with optional month/year filtering.
+    """
+    deposits = AccountDeposit.objects.select_related("account").all().order_by("-date", "-id")
+
+    year = request.GET.get("year")
+    month = request.GET.get("month")
+
+    if year:
+        deposits = deposits.filter(date__year=year)
+    if month:
+        deposits = deposits.filter(date__month=month)
+
+    total_deposits = deposits.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+    years = AccountDeposit.objects.dates("date", "year", order="DESC")
+    months = AccountDeposit.objects.dates("date", "month", order="ASC")
+
+    context = {
+        "deposits": deposits,
+        "total_deposits": total_deposits,
+        "years": years,
+        "months": months,
+        "selected_year": year,
+        "selected_month": month,
+    }
+    return render(request, "john/deposit_list.html", context)
+
+
+def account_deposit_create(request):
+    """
+    Create a new account deposit.
+    """
+    if request.method == "POST":
+        form = AccountDepositForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("john:account_deposit_list")
+    else:
+        form = AccountDepositForm(initial={"date": timezone.localdate()})
+
+    return render(request, "john/deposit_form.html", {"form": form})
+
+
+def account_withdrawal_list(request):
+    """
+    List account withdrawals with optional month/year filtering.
+    """
+    withdrawals = (
+        AccountWithdrawal.objects.select_related("account", "bill")
+        .all()
+        .order_by("-date", "-id")
+    )
+
+    year = request.GET.get("year")
+    month = request.GET.get("month")
+
+    if year:
+        withdrawals = withdrawals.filter(date__year=year)
+    if month:
+        withdrawals = withdrawals.filter(date__month=month)
+
+    total_withdrawals = withdrawals.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+    years = AccountWithdrawal.objects.dates("date", "year", order="DESC")
+    months = AccountWithdrawal.objects.dates("date", "month", order="ASC")
+
+    context = {
+        "withdrawals": withdrawals,
+        "total_withdrawals": total_withdrawals,
+        "years": years,
+        "months": months,
+        "selected_year": year,
+        "selected_month": month,
+    }
+    return render(request, "john/withdrawal_list.html", context)
 
 
 def export_john_data(request):

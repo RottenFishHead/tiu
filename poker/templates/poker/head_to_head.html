@@ -1,0 +1,35 @@
+{% extends 'poker/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-3">Head-to-head: {{ user_a.username }} vs {{ user_b.username }}</h1>
+    <p class="text-muted">Days both played: {{ shared_dates_count }}</p>
+
+        {% if shared_dates_count == 0 %}
+            <div class="alert alert-info">No shared play dates found for these two users.
+                <div class="mt-2 small text-muted">{{ user_a.username }} has {{ user_a_sessions_count }} sessions; {{ user_b.username }} has {{ user_b_sessions_count }} sessions.</div>
+                {% if shared_dates %}
+                    <div class="mt-2">Shared dates (debug):
+                        <ul>
+                            {% for d in shared_dates %}
+                                <li>{{ d }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="card">
+                <div class="card-body">
+                    <div id="headToHeadChart"></div>
+                </div>
+            </div>
+        {% endif %}
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    var chartData = {{ chart_json|safe }};
+    Plotly.newPlot('headToHeadChart', chartData.data, chartData.layout);
+</script>
+{% endblock %}

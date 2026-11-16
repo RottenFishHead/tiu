@@ -1,0 +1,100 @@
+{% extends 'poker/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Weekday Win/Loss</h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="year" class="form-label">Year</label>
+                    <select name="year" id="year" class="form-select">
+                        <option value="">All Years</option>
+                        {% for year in years %}
+                        <option value="{{ year.year }}" {% if selected_year == year.year|stringformat:"s" %}selected{% endif %}>
+                            {{ year.year }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="stakes" class="form-label">Stakes</label>
+                    <select name="stakes" id="stakes" class="form-select">
+                        <option value="">All Stakes</option>
+                        {% for value, label in stakes_choices %}
+                        <option value="{{ value }}" {% if selected_stakes == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Filter</button>
+                    <a href="{% url 'poker:weekday_winloss_chart' %}" class="btn btn-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {{ chart|safe }}
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <h2 class="h5 mb-3">Weekday Breakdown</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Sessions</th>
+                            <th>Total Win/Loss</th>
+                            <th>Avg per Session</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in weekday_rows %}
+                        <tr>
+                            <td>{{ row.label }}</td>
+                            <td>{{ row.sessions_count }}</td>
+                            <td>
+                                <span class="{% if row.total_win_loss > 0 %}text-success{% elif row.total_win_loss < 0 %}text-danger{% endif %}">
+                                    ${{ row.total_win_loss|floatformat:2 }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="{% if row.avg_per_session > 0 %}text-success{% elif row.avg_per_session < 0 %}text-danger{% endif %}">
+                                    ${{ row.avg_per_session|floatformat:2 }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Total</th>
+                            <th>{{ weekday_summary.total_sessions }}</th>
+                            <th>
+                                <span class="{% if weekday_summary.total_win_loss > 0 %}text-success{% elif weekday_summary.total_win_loss < 0 %}text-danger{% endif %}">
+                                    ${{ weekday_summary.total_win_loss|floatformat:2 }}
+                                </span>
+                            </th>
+                            <th>
+                                <span class="{% if weekday_summary.overall_avg_per_session > 0 %}text-success{% elif weekday_summary.overall_avg_per_session < 0 %}text-danger{% endif %}">
+                                    ${{ weekday_summary.overall_avg_per_session|floatformat:2 }}
+                                </span>
+                            </th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,11 +1,631 @@
-{% extends 'poker/base.html' %}  <!-- Assuming you have a base template -->
+{% extends 'poker/base.html' %}
 
 {% block content %}
-  <h2>Edit Poker Session</h2>
-  <form method="post" action="{% url 'poker:edit_session' session.id %}">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Save changes</button>
-  </form>
-  <a href="{% url 'poker:session_detail' session.id %}">Back to Session Detail</a>
+  <style>
+    .session-shell {
+      background: linear-gradient(180deg, #f8fff8 0%, #ffffff 100%);
+      border: 1px solid #d6efd6;
+      border-radius: 14px;
+      padding: 1rem;
+    }
+    .form-section {
+      border: 1px solid #e8ecef;
+      border-radius: 12px;
+      padding: 0.9rem;
+      margin-bottom: 1rem;
+      background: #fff;
+    }
+    .form-section h6 {
+      margin-bottom: 0.75rem;
+      font-weight: 700;
+      color: #1f5130;
+      letter-spacing: 0.02em;
+    }
+    .stat-chip {
+      border-radius: 999px;
+      border: 1px solid #e3e6ea;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.9rem;
+      background: #fff;
+      display: inline-flex;
+      gap: 0.4rem;
+      align-items: center;
+      margin-right: 0.35rem;
+      margin-bottom: 0.35rem;
+    }
+    .timer-card {
+      position: sticky;
+      top: 1rem;
+    }
+    .timer-readout {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #0f5132;
+    }
+    .highlight-success {
+      box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+      transition: box-shadow 0.35s ease;
+    }
+    .timer-toggle-btn {
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    @media (max-width: 768px) {
+      .timer-card {
+        position: static;
+      }
+      .timer-actions {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+
+  <h2 class="mb-3">Edit Poker Session</h2>
+
+  <div class="session-shell">
+    <div class="row g-4">
+      <div class="col-lg-12">
+        <form method="post" action="{% url 'poker:edit_session' session.id %}" class="card shadow-sm border-0">
+          <div class="card-body">
+            {% csrf_token %}
+            {{ form.timer_status }}
+            {{ form.timer_started_at_ms }}
+            {{ form.timer_elapsed_ms }}
+            {{ form.timer_paused_ms }}
+            {{ form.timer_completed_at_ms }}
+
+            <div class="form-section">
+              <h6><i class="bi bi-person-badge me-2"></i>Session Info</h6>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="{{ form.player.id_for_label }}" class="form-label">Player</label>
+                  {{ form.player }}
+                </div>
+                <div class="col-md-6">
+                  <label for="{{ form.casino.id_for_label }}" class="form-label">Casino</label>
+                  {{ form.casino }}
+                </div>
+                <div class="col-md-6">
+                  <label for="{{ form.stakes.id_for_label }}" class="form-label">Stakes</label>
+                  {{ form.stakes }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Date</label>
+                  {{ form.date }}
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h6><i class="bi bi-cash-stack me-2"></i>Money</h6>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="{{ form.buy_in.id_for_label }}" class="form-label">Buy In</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    {{ form.buy_in }}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label for="{{ form.cash_out.id_for_label }}" class="form-label">Cash Out</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    {{ form.cash_out }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" id="timer-toggle" class="btn btn-outline-secondary btn-sm timer-toggle-btn mb-3" aria-expanded="false" aria-controls="timer-section-content">
+              <i class="bi bi-chevron-right me-2"></i>Show timer controls
+            </button>
+
+            <div id="timer-section-content" class="card shadow-sm border-success mb-3 d-none">
+              <div class="card-body">
+                <h5 class="card-title mb-3"><i class="bi bi-stopwatch me-2"></i>Session Time Calculator</h5>
+
+                <div class="timer-actions d-grid gap-2 d-md-flex mb-3">
+                  <button type="button" id="timer-start" class="btn btn-success">Start</button>
+                  <button type="button" id="timer-pause" class="btn btn-warning" disabled>Pause</button>
+                  <button type="button" id="timer-resume" class="btn btn-primary" disabled>Resume</button>
+                  <button type="button" id="timer-end" class="btn btn-danger" disabled>End</button>
+                  <button type="button" id="timer-reset" class="btn btn-outline-secondary">Reset</button>
+                </div>
+
+                <div class="small text-muted mb-1">Elapsed</div>
+                <div id="timer-elapsed" class="timer-readout mb-3">00:00:00</div>
+
+                <div class="small text-muted mb-1">Start Time</div>
+                <div id="timer-start-time" class="mb-2 fw-semibold">-</div>
+
+                <div class="small text-muted mb-1">End Time</div>
+                <div id="timer-end-time" class="mb-2 fw-semibold">-</div>
+
+                <div class="small text-muted mb-1">Total Paused</div>
+                <div id="timer-paused" class="mb-3 fw-semibold">00:00:00</div>
+
+                <div id="timer-hours-note" class="alert alert-success py-2 px-3 mb-3">
+                  Session timer starts on first save and auto-completes when cash out is entered.
+                </div>
+
+                <h6 class="mb-2"><i class="bi bi-graph-up-arrow me-2"></i>Live Session Summary</h6>
+                <div class="mb-1">
+                  <span class="stat-chip">Duration: <strong id="summary-duration">0.00h</strong></span>
+                  <span class="stat-chip">Profit: <strong id="summary-profit">$0.00</strong></span>
+                  <span class="stat-chip">Hourly: <strong id="summary-hourly">$0.00/h</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h6><i class="bi bi-clock-history me-2"></i>Time</h6>
+              <label for="{{ form.hours.id_for_label }}" class="form-label">Hours</label>
+              {{ form.hours }}
+              {% if form.hours.help_text %}
+                <div class="form-text">{{ form.hours.help_text }}</div>
+              {% endif %}
+            </div>
+
+            {% for field in form %}
+              {% for error in field.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            {% endfor %}
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-success px-4">Save changes</button>
+              <a href="{% url 'poker:session_detail' session.id %}" class="btn btn-outline-secondary">Back to Session Detail</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const storageKey = "poker:edit_session_timer_state:{{ session.id }}";
+      const hoursInput = document.getElementById("id_hours");
+      const startBtn = document.getElementById("timer-start");
+      const pauseBtn = document.getElementById("timer-pause");
+      const resumeBtn = document.getElementById("timer-resume");
+      const endBtn = document.getElementById("timer-end");
+
+      const startTimeEl = document.getElementById("timer-start-time");
+      const endTimeEl = document.getElementById("timer-end-time");
+      const pausedEl = document.getElementById("timer-paused");
+      const elapsedEl = document.getElementById("timer-elapsed");
+      const noteEl = document.getElementById("timer-hours-note");
+      const timerToggleBtn = document.getElementById("timer-toggle");
+      const timerSectionContent = document.getElementById("timer-section-content");
+
+      if (!hoursInput || !startBtn || !pauseBtn || !resumeBtn || !endBtn) {
+        return;
+      }
+
+      let sessionStartAtMs = null;
+      let lastResumeAt = null;
+      let pausedStartedAt = null;
+      let elapsedMs = 0;
+      let pausedMs = 0;
+      let completedAtMs = null;
+      let currentStatus = "idle";
+      let ticker = null;
+
+      const buyInInput = document.getElementById("id_buy_in");
+      const cashOutInput = document.getElementById("id_cash_out");
+      const timerStatusInput = document.getElementById("id_timer_status");
+      const timerStartedAtMsInput = document.getElementById("id_timer_started_at_ms");
+      const timerElapsedMsInput = document.getElementById("id_timer_elapsed_ms");
+      const timerPausedMsInput = document.getElementById("id_timer_paused_ms");
+      const timerCompletedAtMsInput = document.getElementById("id_timer_completed_at_ms");
+      const resetBtn = document.getElementById("timer-reset");
+      const summaryDurationEl = document.getElementById("summary-duration");
+      const summaryProfitEl = document.getElementById("summary-profit");
+      const summaryHourlyEl = document.getElementById("summary-hourly");
+
+      function toWholeNumber(value) {
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed)) {
+          return 0;
+        }
+        return Math.max(0, Math.round(parsed));
+      }
+
+      function parseMs(value) {
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed) || parsed <= 0) {
+          return null;
+        }
+        return Math.round(parsed);
+      }
+
+      function normalizeTimerState() {
+        elapsedMs = toWholeNumber(elapsedMs);
+        pausedMs = toWholeNumber(pausedMs);
+        sessionStartAtMs = parseMs(sessionStartAtMs);
+        if (lastResumeAt !== null) {
+          lastResumeAt = toWholeNumber(lastResumeAt);
+        }
+        if (pausedStartedAt !== null) {
+          pausedStartedAt = toWholeNumber(pausedStartedAt);
+        }
+        completedAtMs = parseMs(completedAtMs);
+      }
+
+      function syncHiddenFields() {
+        normalizeTimerState();
+        if (timerStatusInput) timerStatusInput.value = currentStatus;
+        if (timerStartedAtMsInput) timerStartedAtMsInput.value = sessionStartAtMs || "";
+        if (timerElapsedMsInput) timerElapsedMsInput.value = String(elapsedMs || 0);
+        if (timerPausedMsInput) timerPausedMsInput.value = String(pausedMs || 0);
+        if (timerCompletedAtMsInput) timerCompletedAtMsInput.value = completedAtMs || "";
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify({
+            status: currentStatus,
+            sessionStartAtMs,
+            lastResumeAt,
+            pausedStartedAt,
+            elapsedMs,
+            pausedMs,
+            completedAtMs,
+          }));
+        } catch (error) {
+          // Ignore storage failures.
+        }
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(storageKey);
+          return raw ? JSON.parse(raw) : null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function clearState() {
+        try {
+          localStorage.removeItem(storageKey);
+        } catch (error) {
+          // Ignore storage failures.
+        }
+      }
+
+      function pad(n) {
+        return String(n).padStart(2, "0");
+      }
+
+      function formatDuration(ms) {
+        const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        return `${pad(h)}:${pad(m)}:${pad(s)}`;
+      }
+
+      function formatTimestamp(d) {
+        return d.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+          timeZone: "America/Los_Angeles",
+        });
+      }
+
+      function renderStartEnd() {
+        startTimeEl.textContent = sessionStartAtMs ? formatTimestamp(new Date(sessionStartAtMs)) : "-";
+        endTimeEl.textContent = completedAtMs ? formatTimestamp(new Date(completedAtMs)) : "-";
+      }
+
+      function elapsedFromTimeline(nowMs) {
+        if (!sessionStartAtMs) {
+          return null;
+        }
+
+        const referenceNow = nowMs || Date.now();
+        const activePausedMs = (currentStatus === "paused" && pausedStartedAt)
+          ? Math.max(0, referenceNow - pausedStartedAt)
+          : 0;
+        const effectivePausedMs = pausedMs + activePausedMs;
+
+        if (currentStatus === "completed" && completedAtMs) {
+          return Math.max(0, completedAtMs - sessionStartAtMs - pausedMs);
+        }
+
+        if (currentStatus === "running" || currentStatus === "paused") {
+          return Math.max(0, referenceNow - sessionStartAtMs - effectivePausedMs);
+        }
+
+        return null;
+      }
+
+      function updateDisplays() {
+        const timelineMs = elapsedFromTimeline();
+        const runningMs = (currentStatus === "running" && lastResumeAt) ? Date.now() - lastResumeAt : 0;
+        const totalMs = timelineMs !== null ? timelineMs : (elapsedMs + runningMs);
+        elapsedEl.textContent = formatDuration(totalMs);
+        pausedEl.textContent = formatDuration(pausedMs);
+        if (summaryDurationEl) {
+          summaryDurationEl.textContent = `${(totalMs / (1000 * 60 * 60)).toFixed(2)}h`;
+        }
+      }
+
+      function setTimerSectionVisible(visible) {
+        if (!timerSectionContent || !timerToggleBtn) {
+          return;
+        }
+        timerSectionContent.classList.toggle("d-none", !visible);
+        timerToggleBtn.setAttribute("aria-expanded", visible ? "true" : "false");
+        timerToggleBtn.innerHTML = visible
+          ? '<i class="bi bi-chevron-down me-2"></i>Hide timer controls'
+          : '<i class="bi bi-chevron-right me-2"></i>Show timer controls';
+      }
+
+      function updateSummary() {
+        const buyIn = parseFloat((buyInInput && buyInInput.value) || "0") || 0;
+        const cashOut = parseFloat((cashOutInput && cashOutInput.value) || "0") || 0;
+        const hours = parseFloat(hoursInput.value || "0") || 0;
+        const profit = cashOut - buyIn;
+        const hourly = hours > 0 ? profit / hours : 0;
+
+        if (summaryProfitEl) {
+          summaryProfitEl.textContent = `$${profit.toFixed(2)}`;
+          summaryProfitEl.className = profit > 0 ? "text-success" : (profit < 0 ? "text-danger" : "");
+        }
+        if (summaryHourlyEl) {
+          summaryHourlyEl.textContent = `$${hourly.toFixed(2)}/h`;
+          summaryHourlyEl.className = hourly > 0 ? "text-success" : (hourly < 0 ? "text-danger" : "");
+        }
+      }
+
+      function startTicker() {
+        if (ticker) {
+          clearInterval(ticker);
+        }
+        ticker = setInterval(updateDisplays, 500);
+      }
+
+      function stopTicker() {
+        if (ticker) {
+          clearInterval(ticker);
+          ticker = null;
+        }
+      }
+
+      function setButtons(state) {
+        if (state === "idle") {
+          startBtn.disabled = false;
+          pauseBtn.disabled = true;
+          resumeBtn.disabled = true;
+          endBtn.disabled = true;
+        } else if (state === "running") {
+          startBtn.disabled = true;
+          pauseBtn.disabled = false;
+          resumeBtn.disabled = true;
+          endBtn.disabled = false;
+        } else if (state === "paused") {
+          startBtn.disabled = true;
+          pauseBtn.disabled = true;
+          resumeBtn.disabled = false;
+          endBtn.disabled = false;
+        } else {
+          startBtn.disabled = true;
+          pauseBtn.disabled = true;
+          resumeBtn.disabled = true;
+          endBtn.disabled = true;
+        }
+      }
+
+      startBtn.addEventListener("click", function () {
+        const nowMs = Date.now();
+        sessionStartAtMs = nowMs;
+        lastResumeAt = nowMs;
+        pausedStartedAt = null;
+        elapsedMs = 0;
+        pausedMs = 0;
+        completedAtMs = null;
+        currentStatus = "running";
+
+        renderStartEnd();
+        noteEl.textContent = "Timer running...";
+        syncHiddenFields();
+        saveState();
+
+        setButtons("running");
+        startTicker();
+        updateDisplays();
+      });
+
+      pauseBtn.addEventListener("click", function () {
+        if (!lastResumeAt) {
+          return;
+        }
+        const nowMs = Date.now();
+        elapsedMs += nowMs - lastResumeAt;
+        lastResumeAt = null;
+        pausedStartedAt = nowMs;
+        currentStatus = "paused";
+
+        syncHiddenFields();
+        saveState();
+        setButtons("paused");
+        updateDisplays();
+      });
+
+      resumeBtn.addEventListener("click", function () {
+        if (!pausedStartedAt) {
+          return;
+        }
+        const nowMs = Date.now();
+        pausedMs += nowMs - pausedStartedAt;
+        pausedStartedAt = null;
+        lastResumeAt = nowMs;
+        currentStatus = "running";
+
+        syncHiddenFields();
+        saveState();
+        setButtons("running");
+        startTicker();
+        updateDisplays();
+      });
+
+      endBtn.addEventListener("click", function () {
+        const nowMs = Date.now();
+
+        if (lastResumeAt) {
+          elapsedMs += nowMs - lastResumeAt;
+          lastResumeAt = null;
+        }
+        if (pausedStartedAt) {
+          pausedMs += nowMs - pausedStartedAt;
+          pausedStartedAt = null;
+        }
+
+        completedAtMs = nowMs;
+        currentStatus = "completed";
+
+        stopTicker();
+        renderStartEnd();
+        updateDisplays();
+
+        const totalMinutes = Math.max(0, Math.ceil(elapsedMs / (1000 * 60)));
+        const totalHours = (totalMinutes / 60).toFixed(2);
+        hoursInput.value = totalHours;
+        noteEl.textContent = `Hours auto-filled: ${totalHours}`;
+        hoursInput.classList.add("highlight-success");
+        setTimeout(function () {
+          hoursInput.classList.remove("highlight-success");
+        }, 1000);
+        updateSummary();
+        syncHiddenFields();
+
+        clearState();
+        setButtons("ended");
+      });
+
+      resetBtn.addEventListener("click", function () {
+        stopTicker();
+        sessionStartAtMs = null;
+        lastResumeAt = null;
+        pausedStartedAt = null;
+        elapsedMs = 0;
+        pausedMs = 0;
+        completedAtMs = null;
+        currentStatus = "idle";
+
+        renderStartEnd();
+        noteEl.textContent = "Timer reset. Click Start to begin.";
+        syncHiddenFields();
+        clearState();
+        updateDisplays();
+        setButtons("idle");
+      });
+
+      if (timerToggleBtn) {
+        timerToggleBtn.addEventListener("click", function () {
+          const isVisible = !timerSectionContent.classList.contains("d-none");
+          setTimerSectionVisible(!isVisible);
+        });
+      }
+
+      if (buyInInput) {
+        buyInInput.addEventListener("input", updateSummary);
+      }
+      if (cashOutInput) {
+        cashOutInput.addEventListener("input", updateSummary);
+      }
+      hoursInput.addEventListener("input", updateSummary);
+
+      setTimerSectionVisible(false);
+
+      const savedState = loadState();
+      if (savedState && (savedState.status === "running" || savedState.status === "paused")) {
+        currentStatus = savedState.status;
+        sessionStartAtMs = parseMs(savedState.sessionStartAtMs);
+        elapsedMs = toWholeNumber(savedState.elapsedMs || 0);
+        pausedMs = toWholeNumber(savedState.pausedMs || 0);
+        completedAtMs = parseMs(savedState.completedAtMs);
+        lastResumeAt = currentStatus === "running" ? (parseMs(savedState.lastResumeAt) || Date.now()) : null;
+        pausedStartedAt = currentStatus === "paused" ? (parseMs(savedState.pausedStartedAt) || Date.now()) : null;
+
+        if (!sessionStartAtMs) {
+          sessionStartAtMs = Date.now() - elapsedMs - pausedMs;
+        }
+
+        const restoredTimelineMs = elapsedFromTimeline();
+        if (restoredTimelineMs !== null) {
+          elapsedMs = toWholeNumber(restoredTimelineMs);
+        }
+
+        renderStartEnd();
+        noteEl.textContent = currentStatus === "running"
+          ? "Timer restored and still running."
+          : "Timer restored and paused.";
+        setButtons(currentStatus);
+        if (currentStatus === "running") {
+          startTicker();
+        }
+      } else {
+        const initialHours = parseFloat(hoursInput.value || "0") || 0;
+        const initialStatus = (timerStatusInput && timerStatusInput.value) || "";
+
+        sessionStartAtMs = parseMs(timerStartedAtMsInput && timerStartedAtMsInput.value);
+        elapsedMs = toWholeNumber((timerElapsedMsInput && timerElapsedMsInput.value) || 0);
+        pausedMs = toWholeNumber((timerPausedMsInput && timerPausedMsInput.value) || 0);
+        completedAtMs = parseMs(timerCompletedAtMsInput && timerCompletedAtMsInput.value);
+
+        if (!elapsedMs && initialHours > 0) {
+          elapsedMs = toWholeNumber(initialHours * 60 * 60 * 1000);
+        }
+
+        if (initialStatus === "completed" && (completedAtMs || elapsedMs > 0)) {
+          currentStatus = "completed";
+          if (!sessionStartAtMs && completedAtMs && elapsedMs >= 0) {
+            sessionStartAtMs = completedAtMs - elapsedMs - pausedMs;
+          }
+          const completedTimelineMs = elapsedFromTimeline();
+          if (completedTimelineMs !== null) {
+            elapsedMs = toWholeNumber(completedTimelineMs);
+          }
+          renderStartEnd();
+          noteEl.textContent = "Session completed. Timer is stopped.";
+          setButtons("ended");
+        } else if (initialStatus === "running" || initialStatus === "paused") {
+          currentStatus = initialStatus;
+          if (!sessionStartAtMs && elapsedMs > 0) {
+            sessionStartAtMs = Date.now() - elapsedMs - pausedMs;
+          }
+          lastResumeAt = currentStatus === "running" ? Date.now() : null;
+          pausedStartedAt = currentStatus === "paused" ? Date.now() : null;
+          const activeTimelineMs = elapsedFromTimeline();
+          if (activeTimelineMs !== null) {
+            elapsedMs = toWholeNumber(activeTimelineMs);
+          }
+          renderStartEnd();
+          noteEl.textContent = currentStatus === "running"
+            ? "Timer resumed from saved state."
+            : "Timer restored and paused.";
+          setButtons(currentStatus);
+          if (currentStatus === "running") {
+            startTicker();
+          }
+        } else {
+          currentStatus = "idle";
+          renderStartEnd();
+          setButtons("idle");
+        }
+      }
+
+      syncHiddenFields();
+      updateDisplays();
+      updateSummary();
+    })();
+  </script>
 {% endblock %}

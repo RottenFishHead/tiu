@@ -4,12 +4,18 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary-custom text-white">
-                <h2 class="mb-0">{{ title }}</h2>
+    <div class="col-lg-9 col-xl-8">
+        <div class="post-form-hero mb-4">
+            <p class="post-form-kicker mb-2">Blog Editor</p>
+            <h1 class="mb-2">{{ title }}</h1>
+            <p class="mb-0">Write something polished, attach an image, and choose whether to publish right away.</p>
+        </div>
+
+        <div class="card shadow-sm post-form-card">
+            <div class="card-header bg-primary-custom text-white post-form-header">
+                <h2 class="mb-0">Post Details</h2>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4 p-md-5">
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     
@@ -40,6 +46,27 @@
                         {% if form.body.errors %}
                             <div class="text-danger mt-1">{{ form.body.errors }}</div>
                         {% endif %}
+                    </div>   
+                    <div class="mb-3">
+                        <label for="{{ form.health_rating.id_for_label }}" class="form-label">Health Rating (0.5 - 5.0)</label>
+                        {{ form.health_rating }}
+                        {% if form.health_rating.errors %}
+                            <div class="text-danger mt-1">{{ form.health_rating.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.health.id_for_label }}" class="form-label">Health</label>
+                        {{ form.health }}
+                        {% if form.health.errors %}
+                            <div class="text-danger mt-1">{{ form.health.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.john.id_for_label }}" class="form-label">John</label>
+                        {{ form.john }}
+                        {% if form.john.errors %}
+                            <div class="text-danger mt-1">{{ form.john.errors }}</div>
+                        {% endif %}
                     </div>
 
                     <div class="mb-3">
@@ -66,8 +93,8 @@
                         {% endif %}
                     </div>
 
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary px-4">
                             <i class="bi bi-check-circle"></i> {% if post %}Update Post{% else %}Create Post{% endif %}
                         </button>
                         <a href="{% url 'blog:post_list' %}" class="btn btn-secondary">
@@ -81,33 +108,81 @@
 </div>
 
 <style>
+    .post-form-hero {
+        padding: 1.5rem 1.75rem;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, rgba(44, 90, 160, 0.12), rgba(30, 58, 95, 0.08));
+        border: 1px solid rgba(30, 58, 95, 0.08);
+    }
+
+    .post-form-kicker {
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+    }
+
+    .post-form-hero h1 {
+        font-size: 2.15rem;
+        font-weight: 800;
+        color: var(--dark-blue);
+    }
+
     .bg-primary-custom {
         background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
     }
     
-    .card {
+    .post-form-card {
         border: none;
-        border-radius: 0.5rem;
+        border-radius: 1rem;
+        overflow: hidden;
     }
     
-    .card-header {
-        border-radius: 0.5rem 0.5rem 0 0 !important;
-        padding: 1.5rem;
+    .post-form-header {
+        border-radius: 1rem 1rem 0 0 !important;
+        padding: 1.35rem 1.5rem;
     }
     
     .form-label {
-        font-weight: 600;
+        font-weight: 700;
         color: var(--dark-blue);
+    }
+
+    .form-control, .form-select {
+        border-radius: 0.8rem;
+        border-color: rgba(30, 58, 95, 0.18);
+        padding: 0.8rem 0.95rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 0.2rem rgba(44, 90, 160, 0.12);
     }
     
     .btn-primary {
         background: var(--primary-blue);
         border-color: var(--primary-blue);
+        border-radius: 0.8rem;
     }
     
     .btn-primary:hover {
         background: var(--dark-blue);
         border-color: var(--dark-blue);
+    }
+
+    .btn-secondary {
+        border-radius: 0.8rem;
+    }
+
+    @media (max-width: 768px) {
+        .post-form-hero {
+            padding: 1.1rem 1.2rem;
+        }
+
+        .post-form-hero h1 {
+            font-size: 1.7rem;
+        }
     }
 </style>
 

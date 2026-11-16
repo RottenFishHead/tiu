@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from .fields import STAKES_CHOICES
 from django.conf import settings
 from django.utils import timezone   
+from decimal import Decimal
     
 class Casino(models.Model):
     name = models.CharField(max_length=255)
@@ -13,14 +14,32 @@ class Casino(models.Model):
     
 
 class PokerSession(models.Model):
+    TIMER_IDLE = "idle"
+    TIMER_RUNNING = "running"
+    TIMER_PAUSED = "paused"
+    TIMER_COMPLETED = "completed"
+
+    TIMER_STATUS_CHOICES = [
+        (TIMER_IDLE, "Idle"),
+        (TIMER_RUNNING, "Running"),
+        (TIMER_PAUSED, "Paused"),
+        (TIMER_COMPLETED, "Completed"),
+    ]
+
     player = models.ForeignKey(User, on_delete=models.CASCADE, related_name='player')
     casino = models.ForeignKey(Casino, on_delete=models.CASCADE)
     stakes = models.CharField(max_length=20, choices=STAKES_CHOICES)
     date = models.DateField()
-    hours = models.IntegerField() 
+    hours = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal("0.00"), blank=True)
     buy_in = models.IntegerField() 
-    cash_out = models.IntegerField() 
+    cash_out = models.IntegerField(default=0, blank=True) 
+    timer_status = models.CharField(max_length=20, choices=TIMER_STATUS_CHOICES, default=TIMER_COMPLETED)
+    timer_started_at_ms = models.BigIntegerField(null=True, blank=True)
+    timer_elapsed_ms = models.BigIntegerField(default=0)
+    timer_paused_ms = models.BigIntegerField(default=0)
+    timer_completed_at_ms = models.BigIntegerField(null=True, blank=True)
     notes = models.TextField(max_length=5000, blank=True, null=True)
+    selected_stop = models.ForeignKey("StopIt", on_delete=models.SET_NULL, null=True, blank=True, related_name="sessions")
     created = models.DateField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     
@@ -29,6 +48,46 @@ class PokerSession(models.Model):
     
     def __str__(self):
         return str(self.id)
+
+    @staticmethod
+    def _now_ms():
+        return int(timezone.now().timestamp() * 1000)
+
+    def save(self, *args, **kwargs):
+        is_create = self.pk is None
+
+        if is_create and not self.timer_started_at_ms:
+            self.timer_started_at_ms = self._now_ms()
+            self.timer_status = self.TIMER_RUNNING
+
+        cash_out_has_entry = getattr(self, "_cash_out_has_entry", None)
+        if cash_out_has_entry is None:
+            cash_out_has_entry = self.cash_out not in (None, 0)
+
+        should_complete = (
+            not is_create
+            and
+            bool(self.timer_started_at_ms)
+            and bool(cash_out_has_entry)
+            and self.timer_status != self.TIMER_COMPLETED
+        )
+
+        if should_complete:
+            if not self.timer_completed_at_ms:
+                self.timer_completed_at_ms = self._now_ms()
+
+            started_ms = int(self.timer_started_at_ms or 0)
+            completed_ms = int(self.timer_completed_at_ms or started_ms)
+            paused_ms = int(self.timer_paused_ms or 0)
+            derived_elapsed_ms = max(0, completed_ms - started_ms - paused_ms)
+            stored_elapsed_ms = int(self.timer_elapsed_ms or 0)
+            elapsed_ms = max(derived_elapsed_ms, stored_elapsed_ms)
+
+            self.timer_elapsed_ms = elapsed_ms
+            self.timer_status = self.TIMER_COMPLETED
+            self.hours = (Decimal(elapsed_ms) / Decimal("3600000")).quantize(Decimal("0.01"))
+
+        super().save(*args, **kwargs)
 
     @property
     def win_loss(self):
@@ -39,13 +98,6 @@ class PokerSession(models.Model):
         if self.hours > 0:
             return self.win_loss / self.hours
         return 0
-    
-    def total_session_hours(self):
-        total_hours = (self.clock_out - self.clock_in).seconds // 3600
-        if self.break_start and self.break_end:
-            break_hours = (self.break_end - self.break_start).seconds // 3600
-            total_hours -= break_hours
-        return total_hours
 
 class PlayerTag(models.Model):
     """
@@ -193,3 +245,46 @@ class PlayerExploit(models.Model):
 
     def __str__(self):
         return f"{self.player} - {self.tag}"
+
+
+class PokerNoteKeyword(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class PokerNote(models.Model):
+    player = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="poker_notes")
+    session = models.ForeignKey(PokerSession, on_delete=models.SET_NULL, null=True, blank=True, related_name="poker_notes")
+    title = models.CharField(max_length=140, blank=True)
+    note = models.TextField(max_length=5000)
+    is_important = models.BooleanField(default=False)
+    keywords = models.ManyToManyField(PokerNoteKeyword, blank=True, related_name="notes")
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-is_important", "-updated"]
+        indexes = [
+            models.Index(fields=["player", "-updated"], name="poker_poker_player__d8cb53_idx"),
+            models.Index(fields=["player", "is_important"], name="poker_poker_player__84b2af_idx"),
+        ]
+
+    def __str__(self):
+        return self.title or f"Note #{self.pk}"
+    
+class StopIt(models.Model):
+    stop = models.CharField(max_length=250, unique=True)
+    state = models.CharField(max_length=20, default="leak", choices=[("leak", "Leak"), ("working", "Working"), ("mastered", "Mastered")])
+    fails = models.IntegerField(default=0, choices=[(i, i) for i in range(51)])
+    text = models.TextField(blank=True, help_text="Optional notes about this stop-it.")
+    
+    class Meta:
+        ordering = ["stop"]
+
+    def __str__(self):
+        return self.stop

@@ -1,6 +1,14 @@
-<h2>Add a new comment</h2>
-<form action="{% url "blog:post_comment" post.id %}" method="post">
-  {{ form.as_p }}
-  {% csrf_token %}
-  <p><input type="submit" value="Add comment"></p>
-</form>
+<div class="card shadow-sm post-form-card">
+  <div class="card-header bg-primary-custom text-white post-form-header">
+    <h3 class="mb-0">Add a new comment</h3>
+  </div>
+  <div class="card-body p-4 p-md-5">
+    <form action="{% url 'blog:post_comment' post.id %}" method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary px-4">
+        <i class="bi bi-chat-left-text"></i> Add comment
+      </button>
+    </form>
+  </div>
+</div>

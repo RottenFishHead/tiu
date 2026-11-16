@@ -1,5 +1,5 @@
 from django import forms
-from .models import Bill, BillPayment, WorkEntry, MileageEntry
+from .models import Bill, BillPayment, WorkEntry, MileageEntry, AccountDeposit
 
 
 class BootstrapFormMixin:
@@ -72,4 +72,13 @@ class MileageEntryForm(BootstrapFormMixin, forms.ModelForm):
             "starting_mileage": "Enter starting odometer reading to auto-calculate miles.",
             "ending_mileage": "Enter ending odometer reading to auto-calculate miles.",
             "miles": "Will be calculated from start/end mileage, or enter manually.",
+        }
+
+
+class AccountDepositForm(BootstrapFormMixin, forms.ModelForm):
+    class Meta:
+        model = AccountDeposit
+        fields = ["account", "amount", "date", "method", "memo"]
+        widgets = {
+            "date": forms.DateInput(attrs={"type": "date"}),
         }

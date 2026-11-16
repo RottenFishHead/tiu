@@ -132,6 +132,63 @@ class AccountWithdrawal(models.Model):
         return f"{self.account} - {self.date} - ${self.amount}"
 
 
+class AccountDeposit(models.Model):
+    """
+    Any money going into an account (paycheck, transfer in, cash deposit, etc.).
+    """
+    METHOD_ACH = "ACH"
+    METHOD_TRANSFER = "TRANSFER"
+    METHOD_CHECK = "CHECK"
+    METHOD_CASH = "CASH"
+    METHOD_OTHER = "OTHER"
+
+    METHOD_CHOICES = [
+        (METHOD_ACH, "ACH / Direct deposit"),
+        (METHOD_TRANSFER, "Account transfer"),
+        (METHOD_CHECK, "Check"),
+        (METHOD_CASH, "Cash"),
+        (METHOD_OTHER, "Other"),
+    ]
+
+    account = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+        related_name="deposits",
+        help_text="Which account the money was deposited into.",
+    )
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Positive amount of money deposited.",
+    )
+    date = models.DateField(
+        default=timezone.localdate,
+        help_text="Date the deposit was received.",
+    )
+    method = models.CharField(
+        max_length=10,
+        choices=METHOD_CHOICES,
+        default=METHOD_ACH,
+        help_text="How the deposit was made.",
+    )
+    memo = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Short description (e.g. 'Paycheck', 'Transfer from savings').",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date", "-id"]
+        verbose_name = "Account deposit"
+        verbose_name_plural = "Account deposits"
+
+    def __str__(self):
+        return f"{self.account} + {self.date} - ${self.amount}"
+
+
 class BillPayment(models.Model):
     """
     A single month's payment of a recurring bill.

@@ -1,0 +1,90 @@
+{% extends "john/base.html" %}
+
+{% block title %}Account Withdrawals - John{% endblock %}
+
+{% block page_header %}
+  <h1 class="mb-1">Account Withdrawals</h1>
+  <p class="mb-0">Track money leaving your accounts by date, method, and bill.</p>
+{% endblock %}
+
+{% block content %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+          <label for="year" class="form-label">Year</label>
+          <select id="year" name="year" class="form-select">
+            <option value="">All</option>
+            {% for y in years %}
+              <option value="{{ y|date:'Y' }}" {% if selected_year == y|date:'Y' %}selected{% endif %}>
+                {{ y|date:'Y' }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="month" class="form-label">Month</label>
+          <select id="month" name="month" class="form-select">
+            <option value="">All</option>
+            {% for m in months %}
+              <option value="{{ m|date:'n' }}" {% if selected_month == m|date:'n' %}selected{% endif %}>
+                {{ m|date:'F' }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Apply Filters</button>
+          <a href="{% url 'john:account_withdrawal_list' %}" class="btn btn-outline-secondary">Reset</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h2 class="h6 mb-0">Withdrawals</h2>
+      <span class="fw-semibold">Total: ${{ total_withdrawals|floatformat:2 }}</span>
+    </div>
+    <div class="card-body p-0">
+      {% if withdrawals %}
+        <div class="table-responsive">
+          <table class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>Account</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Bill</th>
+                <th>Memo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for withdrawal in withdrawals %}
+                <tr>
+                  <td>{{ withdrawal.date }}</td>
+                  <td>{{ withdrawal.account }}</td>
+                  <td class="fw-semibold text-danger">${{ withdrawal.amount|floatformat:2 }}</td>
+                  <td>{{ withdrawal.get_method_display }}</td>
+                  <td>
+                    {% if withdrawal.bill %}
+                      {{ withdrawal.bill.name }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                  <td>{{ withdrawal.memo|default:'-' }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="p-4 text-muted">
+          No withdrawals found for the selected filters.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<h1>Win Rate by Casino</h1>
+<p>Shows the percent of sessions that were winning, total profit, and average profit per session.</p>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-auto">
+    <label class="form-label">Start</label>
+    <input type="date" name="start" value="{{ selected_start }}" class="form-control">
+  </div>
+  <div class="col-auto">
+    <label class="form-label">End</label>
+    <input type="date" name="end" value="{{ selected_end }}" class="form-control">
+  </div>
+  <div class="col-auto">
+    <label class="form-label">Stakes</label>
+    <select name="stakes" class="form-select">
+      <option value="">All</option>
+      {% for val, label in stakes_choices %}
+      <option value="{{ val }}" {% if selected_stakes == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-auto align-self-end">
+    <button class="btn btn-primary" type="submit">Filter</button>
+    <a class="btn btn-secondary" href="{% url 'poker:casino_win_rates' %}">Clear</a>
+  </div>
+</form>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Casino</th>
+      <th>Sessions</th>
+      <th>Wins</th>
+      <th>Win Rate (%)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.casino_name }}</td>
+      <td>{{ r.session_count }}</td>
+      <td>{{ r.wins }}</td>
+      <td>{{ r.win_rate_pct }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">No sessions found.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

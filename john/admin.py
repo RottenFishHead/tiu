@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils import timezone
 
 from .models import Account, Bill, AccountWithdrawal, BillPayment,WorkEntry \
-    , MileageEntry
+    , MileageEntry, AccountDeposit
 
 
 @admin.register(Account)
@@ -73,3 +73,13 @@ class MileageEntryAdmin(admin.ModelAdmin):
     search_fields = ("description", "notes")
     date_hierarchy = "date"
     ordering = ("-date", "-id")
+
+
+@admin.register(AccountDeposit)
+class AccountDepositAdmin(admin.ModelAdmin):
+    list_display = ("account", "amount", "date", "method", "memo")
+    list_filter = ("account", "method", "date", "created_at")
+    search_fields = ("account__name", "memo")
+    date_hierarchy = "date"
+    ordering = ("-date", "-id")
+    autocomplete_fields = ("account",)

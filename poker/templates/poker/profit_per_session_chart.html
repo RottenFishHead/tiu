@@ -13,7 +13,7 @@
 
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
-    var chartData = {{ chart_json|safe }};
+    var chartData = JSON.parse('{{ chart_json|escapejs }}');
     Plotly.newPlot('chart', chartData.data, chartData.layout);
 </script>
 {% endblock %}
