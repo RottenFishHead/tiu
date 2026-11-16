@@ -22,12 +22,13 @@ def dashboard(request):
     year, month = today.year, today.month
     current_month_name = today.strftime("%B")
 
-    # ===== Bills (recurring, due_day-based) =====
+    # ===== Recurring and one-time bills =====
     bills = (
         Bill.objects.filter(active=True)
         .select_related("account")
         .prefetch_related("payments")
     )
+    month_end = date(year, month, calendar.monthrange(year, month)[1])
 
     overdue = []
     due_soon = []
@@ -38,12 +39,15 @@ def dashboard(request):
     soon_threshold = today + timedelta(days=7)
 
     for bill in bills:
-        bill.due_date = _due_date_for_month(bill.due_day, year, month)
+        if bill.scheduled_date and bill.scheduled_date > month_end:
+            continue
+        bill.due_date = bill.scheduled_date or _due_date_for_month(bill.due_day, year, month)
         bill.days_until_due = (bill.due_date - today).days
-        bill.paid_this_month = bill.payments.filter(
-            date_paid__year=year,
-            date_paid__month=month,
-        ).exists()
+        bill.paid_this_month = (
+            bill.payments.exists()
+            if bill.scheduled_date
+            else bill.payments.filter(date_paid__year=year, date_paid__month=month).exists()
+        )
 
         if bill.paid_this_month:
             bill.due_status = "paid"
@@ -116,39 +120,43 @@ def dashboard(request):
 
 def bill_list(request):
     today = timezone.localdate()
-    current_day = today.day
-    soon_threshold_day = (today + timedelta(days=7)).day
+    month_end = date(today.year, today.month, calendar.monthrange(today.year, today.month)[1])
+    soon_threshold = today + timedelta(days=7)
 
-    # Get all active bills
-    active_bills = Bill.objects.filter(active=True).order_by("due_day")
-    
-    # Get bills paid this month
-    paid_bill_ids_this_month = BillPayment.objects.filter(
-        date_paid__year=today.year,
-        date_paid__month=today.month,
-    ).values_list('bill_id', flat=True)
+    # One-time bills become visible in their due month and remain until paid.
+    active_bills = (
+        Bill.objects.filter(active=True)
+        .filter(Q(scheduled_date__isnull=True) | Q(scheduled_date__lte=month_end))
+        .select_related("account")
+        .prefetch_related("payments")
+    )
+    bills = []
+    for bill in active_bills:
+        bill.due_date = bill.scheduled_date or _due_date_for_month(
+            bill.due_day, today.year, today.month
+        )
+        bill.paid_this_month = (
+            bill.payments.exists()
+            if bill.scheduled_date
+            else bill.payments.filter(
+                date_paid__year=today.year,
+                date_paid__month=today.month,
+            ).exists()
+        )
+        if bill.paid_this_month:
+            continue
 
-    # Unpaid bills this month
-    bills = active_bills.exclude(id__in=paid_bill_ids_this_month)
-
-    # Annotate each bill with helper attributes for the template
-    for bill in bills:
-        # Calculate days until due (approximate, within current month)
-        if bill.due_day >= current_day:
-            bill.days_until_due = bill.due_day - current_day
-        else:
-            # Bill is overdue this month
-            bill.days_until_due = -(current_day - bill.due_day)
-        
-        # Store absolute value for display
+        bill.days_until_due = (bill.due_date - today).days
         bill.days_until_due_abs = abs(bill.days_until_due)
-        
-        if bill.due_day < current_day:
+        if bill.due_date < today:
             bill.due_status = "overdue"
-        elif bill.due_day <= current_day + 7:
+        elif bill.due_date <= soon_threshold:
             bill.due_status = "soon"
         else:
             bill.due_status = "upcoming"
+        bills.append(bill)
+
+    bills.sort(key=lambda bill: (bill.due_date, bill.name))
 
     context = {
         "bills": bills,

@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from decimal import Decimal
@@ -26,16 +27,24 @@ class Account(models.Model):
 
 class Bill(models.Model):
     """
-    A recurring monthly bill.
-    - due_day = day of the month it's due (1–31)
-    - Whether it's 'paid this month' is tracked via BillPayment records.
+    A recurring monthly bill or a bill scheduled for one exact date.
+    - due_day = recurring day of the month (1–31)
+    - scheduled_date = due date for a one-time bill
+    - Payment status is tracked via BillPayment records.
     """
     name = models.CharField(max_length=200)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     due_day = models.PositiveSmallIntegerField(
-        default=1,
+        null=True,
+        blank=True,
+        default=None,
         help_text="Day of the month this bill is due (1–31).",
+    )
+    scheduled_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Exact due date for a one-time bill.",
     )
     is_auto_pay = models.BooleanField(
         default=False,
@@ -61,7 +70,20 @@ class Bill(models.Model):
     class Meta:
         ordering = ["active", "due_day", "name"]
 
+    def clean(self):
+        super().clean()
+        if self.scheduled_date and self.due_day is not None:
+            raise ValidationError({
+                "scheduled_date": "Choose either an exact due date or a monthly due day, not both."
+            })
+        if not self.scheduled_date and not self.due_day:
+            raise ValidationError({
+                "due_day": "Enter a monthly due day or choose an exact due date."
+            })
+
     def __str__(self):
+        if self.scheduled_date:
+            return f"{self.name} (due {self.scheduled_date})"
         return f"{self.name} (day {self.due_day})"
 
 

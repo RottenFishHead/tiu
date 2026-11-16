@@ -13,6 +13,10 @@ class FixedExpenseForm(forms.ModelForm):
     class Meta:
         model = FixedExpense
         fields = '__all__'
+        widgets = {
+            "day_to_pay": forms.NumberInput(attrs={"min": 1, "max": 31}),
+            "due_date": forms.DateInput(attrs={"type": "date"}),
+        }
 
 
 class BudgetForm(forms.ModelForm):

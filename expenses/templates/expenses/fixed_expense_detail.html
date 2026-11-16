@@ -4,7 +4,9 @@
 <div class="card" style="width: 25rem;">
     <div class="card-body">
       <h2 class="card-title">{{ fixed_expense.name }}</h2>
-      <h5 class="card-subtitle mb-2 text-muted">{{ fixed_expense.get_frequency_display }} day to pay: {{ fixed_expense.day_to_pay }}</h5>
+      <h5 class="card-subtitle mb-2 text-muted">
+        {% if fixed_expense.due_date %}Due {{ fixed_expense.due_date }}{% else %}{{ fixed_expense.get_frequency_display }} day to pay: {{ fixed_expense.day_to_pay }}{% endif %}
+      </h5>
       <p class="card-text">User: {{ fixed_expense.user }}</p>
       <p class="card-text">Account: {{ fixed_expense.account }}</p>
       <p class="card-text">Category: {{ fixed_expense.category }}</p>

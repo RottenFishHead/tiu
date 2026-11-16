@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.timezone import now
 from django.contrib.auth.models import User
@@ -35,12 +36,32 @@ class FixedExpense(models.Model):
     frequency = models.CharField(max_length=3, choices=FREQUENCY_CHOICES)
     autopay = models.BooleanField(default=True, verbose_name='Autopay')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    day_to_pay = models.IntegerField(blank=False, null=False)
+    day_to_pay = models.IntegerField(blank=True, null=True)
+    due_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text='For a one-time expense, choose its exact due date and set frequency to "Once".',
+    )
     created = models.DateField(default=now)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return self.name
+
+    def clean(self):
+        super().clean()
+        if self.due_date and self.day_to_pay is not None:
+            raise ValidationError({
+                "day_to_pay": "Leave the monthly day blank when using an exact due date."
+            })
+        if self.due_date and self.frequency != "ON":
+            raise ValidationError({
+                "frequency": 'Choose "Once" when using an exact due date.'
+            })
+        if not self.due_date and self.day_to_pay is None:
+            raise ValidationError({
+                "day_to_pay": "Enter a due day or choose an exact due date."
+            })
 
     @property
     def fixed_amount_paid(self):
@@ -48,6 +69,8 @@ class FixedExpense(models.Model):
 
     @property
     def is_paid(self):
+        if self.due_date:
+            return "Yes" if self.payments.exists() else "No"
         return "Yes" if now().day > self.day_to_pay else "No"
     
 class Expense(models.Model):

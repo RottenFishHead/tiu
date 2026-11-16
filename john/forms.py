@@ -21,13 +21,19 @@ class BillForm(forms.ModelForm):
             "name",
             "amount",
             "due_day",
+            "scheduled_date",
             "is_auto_pay",
             "account",
             "notes",
         ]
         widgets = {
             "due_day": forms.NumberInput(attrs={"type": "number", "min": 1, "max": 31}),
+            "scheduled_date": forms.DateInput(attrs={"type": "date"}),
             "notes": forms.Textarea(attrs={"rows": 3}),
+        }
+        help_texts = {
+            "due_day": "For a recurring monthly bill, enter its day of the month.",
+            "scheduled_date": "For a one-time bill, choose its exact due date instead.",
         }
 
 

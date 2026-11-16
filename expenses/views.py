@@ -3,13 +3,12 @@ from django.contrib.auth.decorators import login_required
 from .models import Expense, FixedExpense, Category, Budget, Debt, Payment, Savings
 from .forms import ExpenseForm, FixedExpenseForm, BudgetForm, PaymentForm
 from django.utils import timezone
-from django.db.models import Sum, F, DecimalField, Value
+from django.db.models import Q, Sum, F, DecimalField, Value
 from django.db.models.functions import Coalesce
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 import calendar
-from datetime import datetime
 
 
 @login_required(login_url='/account/login/')
@@ -167,7 +166,10 @@ def expense_overview(request):
     total_expenses = expenses.aggregate(Sum('amount'))['amount__sum']
 
     # Data for fixed_expense_list
-    fixed_expenses = FixedExpense.objects.all()
+    month_end = date(current_year, current_month, calendar.monthrange(current_year, current_month)[1])
+    fixed_expenses = FixedExpense.objects.filter(
+        Q(due_date__isnull=True) | Q(due_date__lte=month_end)
+    ).order_by("due_date", "day_to_pay", "name")
 
     context = {
         'expenses': expenses,
@@ -183,13 +185,16 @@ def expense_overview(request):
 
 @login_required(login_url='/account/login/')
 def fixed_expense_list(request):
-        fixed_expenses = FixedExpense.objects.all() 
-        today = datetime.now().day
+        today = timezone.localdate()
+        month_end = date(today.year, today.month, calendar.monthrange(today.year, today.month)[1])
+        fixed_expenses = FixedExpense.objects.filter(
+            Q(due_date__isnull=True) | Q(due_date__lte=month_end)
+        ).order_by("due_date", "day_to_pay", "name")
         total_amount = sum(fixed_expense.amount for fixed_expense in fixed_expenses)
         context = ({
             'fixed_expenses': fixed_expenses,
             'total_amount':total_amount,
-            'today': today
+            'today': today.day
         })
         return render(request, 'expenses/fixed_expense_list.html', context)
 

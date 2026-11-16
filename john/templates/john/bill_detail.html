@@ -39,7 +39,13 @@
               </tr>
               <tr>
                 <th>Due Day:</th>
-                <td>Day {{ bill.due_day }} of each month</td>
+                <td>
+                  {% if bill.scheduled_date %}
+                    {{ bill.scheduled_date }} (one-time)
+                  {% else %}
+                    Day {{ bill.due_day }} of each month
+                  {% endif %}
+                </td>
               </tr>
               <tr>
                 <th>Account:</th>

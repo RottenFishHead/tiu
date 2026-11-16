@@ -47,7 +47,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for fixed_expense in fixed_expenses|dictsort:"day_to_pay" %}
+        {% for fixed_expense in fixed_expenses %}
           <tr>
             <td>
               <a href="{% url 'expenses:fixed_expense_detail' pk=fixed_expense.pk %}">
@@ -55,7 +55,7 @@
               </a>
             </td>
             <td>${{ fixed_expense.amount }}</td>
-            <td>{{ fixed_expense.day_to_pay }}</td>
+            <td>{% if fixed_expense.due_date %}{{ fixed_expense.due_date }}{% else %}{{ fixed_expense.day_to_pay }}{% endif %}</td>
             {% if fixed_expense.autopay %}
             <td class="text-success">Yes</td>
               {% else %}
