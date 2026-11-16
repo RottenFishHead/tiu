@@ -113,6 +113,26 @@
           </ul>
         </li>
 
+        <!-- Banking dropdown -->
+        <li class="nav-item dropdown me-3">
+          <a class="nav-link dropdown-toggle" href="#" id="bankingDropdown"
+             role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Banking
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="bankingDropdown">
+            <li>
+              <a class="dropdown-item" href="{% url 'john:account_deposit_list' %}">
+                Deposit List
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'john:account_withdrawal_list' %}">
+                Withdrawal List
+              </a>
+            </li>
+          </ul>
+        </li>
+
         <!-- Time & Driving dropdown -->
         <li class="nav-item dropdown me-3">
           <a class="nav-link dropdown-toggle" href="#" id="timeDrivingDropdown"
@@ -160,6 +180,9 @@
               </a>
             </li>
           </ul>
+        </li>
+        <li class="nav-item me-3">
+          <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
         </li>
       </ul>
     </div>

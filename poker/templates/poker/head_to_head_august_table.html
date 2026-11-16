@@ -1,0 +1,27 @@
+{% extends 'poker/base.html' %}
+
+{% block content %}
+  <h2>Head-to-Head — August {{ year }}</h2>
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% else %}
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>{{ users.0.username }} (Profit)</th>
+          <th>{{ users.1.username }} (Profit)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td>{{ row.date }}</td>
+            <td class="{% if row.a_total >= 0 %}text-success{% else %}text-danger{% endif %}">{{ row.a_total|floatformat:2 }}</td>
+            <td class="{% if row.b_total >= 0 %}text-success{% else %}text-danger{% endif %}">{{ row.b_total|floatformat:2 }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock %}

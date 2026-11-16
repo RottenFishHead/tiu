@@ -3,10 +3,65 @@
 {% block title %}Add a comment{% endblock %}
 
 {% block content %}
-  {% if comment %}
-    <h2>Your comment has been added.</h2>
-    <p><a href="{{ post.get_absolute_url }}">Back to the post</a></p>
-  {% else %}
-    {% include "blog/post/includes/comment_form.html" %}
-  {% endif %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    {% if comment %}
+    <div class="post-form-hero mb-4">
+      <p class="post-form-kicker mb-2">Comment posted</p>
+      <h1 class="mb-2">Your comment has been added.</h1>
+      <p class="mb-0">Thanks for adding to the conversation.</p>
+    </div>
+
+    <div class="card shadow-sm post-form-card">
+      <div class="card-body p-4 p-md-5 text-center">
+        <p class="mb-4">You can return to the post now or continue reading the discussion.</p>
+        <a href="{{ post.get_absolute_url }}" class="btn btn-primary px-4">
+          <i class="bi bi-arrow-left"></i> Back to the post
+        </a>
+      </div>
+    </div>
+    {% else %}
+      {% include "blog/post/includes/comment_form.html" %}
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  .post-form-hero {
+    padding: 1.5rem 1.75rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, rgba(44, 90, 160, 0.12), rgba(30, 58, 95, 0.08));
+    border: 1px solid rgba(30, 58, 95, 0.08);
+  }
+
+  .post-form-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+  }
+
+  .post-form-hero h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--dark-blue);
+  }
+
+  .post-form-card {
+    border: none;
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  @media (max-width: 768px) {
+    .post-form-hero {
+      padding: 1.1rem 1.2rem;
+    }
+
+    .post-form-hero h1 {
+      font-size: 1.7rem;
+    }
+  }
+</style>
 {% endblock %}

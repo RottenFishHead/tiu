@@ -1,0 +1,47 @@
+{% extends "john/base.html" %}
+
+{% block title %}Add Deposit - John{% endblock %}
+
+{% block page_header %}
+  <h1 class="mb-1">Add Account Deposit</h1>
+  <p class="mb-0">Record money added to one of your accounts.</p>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {% for field in form %}
+              <div class="mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label">
+                  {{ field.label }}
+                  {% if field.field.required %}
+                    <span class="text-danger">*</span>
+                  {% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}
+                  <div class="form-text">{{ field.help_text }}</div>
+                {% endif %}
+                {% for error in field.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endfor %}
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'john:account_deposit_list' %}" class="btn btn-outline-secondary">
+                Cancel
+              </a>
+              <button type="submit" class="btn btn-primary">
+                Save Deposit
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

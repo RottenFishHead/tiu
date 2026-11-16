@@ -13,10 +13,10 @@
   <div class="card-body">
     <form method="post" enctype="multipart/form-data" novalidate>
       {% csrf_token %}
-          {% if mode == "edit" and player.player_image %}
+          {% if mode == "edit" and player.image %}
             <div class="mb-3">
               <div class="text-muted small mb-1">Current photo</div>
-              <img src="{{ player.player_image.url }}" class="img-fluid rounded border" style="max-height:220px;" alt="Player photo">
+              <img src="{{ player.image.url }}" class="img-fluid rounded border" style="max-height:220px;" alt="Player photo">
             </div>
           {% endif %}
       {% if form.non_field_errors %}

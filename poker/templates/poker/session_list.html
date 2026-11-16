@@ -24,7 +24,7 @@
               {{ session.get_stakes_display }}
             </td>
             <td>
-              {{ session.hours }}
+              {{ session.hours|floatformat:2 }}
             </td>
             <td>
               {% if session.win_loss > 0 %}

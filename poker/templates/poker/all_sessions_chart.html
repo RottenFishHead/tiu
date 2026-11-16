@@ -9,8 +9,8 @@
 <!-- Include the chart using Plotly JSON -->
 <div id="winLossChart"></div>
 <script>
-    // Parse the Plotly JSON data
-    var chartData = {{ chart_json|safe }};
+    // Parse the Plotly JSON data safely before rendering.
+    var chartData = JSON.parse('{{ chart_json|escapejs }}');
 
     // Display the chart
     Plotly.newPlot('winLossChart', chartData.data, chartData.layout);

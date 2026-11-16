@@ -2,13 +2,85 @@
 
 {% block content %}
 
-<h3 class='fs-5 text-warning fst-italic'>Current Hourly Rate Overall: ${{ overall_hourly_rate|floatformat:2 }} ({{ overall_hours }} hours)</span></h3>
+<h3 class='fs-5 text-dark fst-italic'>Current Hourly Rate Overall: ${{ overall_hourly_rate|floatformat:2 }} ({{ overall_hours|floatformat:2 }} hours)</span></h3>
 
 
 {% include 'partials/overall_chart_partial.html' %}
 
-<h1 class='mb-6'>Session List by Month</h1>
-{% include 'partials/month_sessions_partial.html' %}
+<h1 class='mb-4'>Selected Month/Year Sessions</h1>
+
+<div class="container mb-4">
+	<form method="get" action="{% url 'poker:home' %}" class="d-flex align-items-center gap-2 flex-wrap">
+		<label for="month" class="mb-0">Filter by Month:</label>
+		<select name="month" id="month" class="form-select" style="max-width: 220px;">
+			{% for number, label in month_choices %}
+			<option value="{{ number }}" {% if selected_month == number %}selected{% endif %}>{{ label }}</option>
+			{% endfor %}
+		</select>
+		<label for="year" class="mb-0">Year:</label>
+		<select name="year" id="year" class="form-select" style="max-width: 140px;">
+			{% for year in year_choices %}
+			<option value="{{ year.year }}" {% if selected_year == year.year %}selected{% endif %}>{{ year.year }}</option>
+			{% empty %}
+			<option value="{{ selected_year }}" selected>{{ selected_year }}</option>
+			{% endfor %}
+		</select>
+		<button type="submit" class="btn btn-outline-primary">Apply Filter</button>
+	</form>
+</div>
+
+<div class="container mb-5">
+	<div class="table-responsive">
+		<table class="table table-bordered">
+			<thead class="thead-dark">
+				<tr>
+					<th>Date</th>
+					<th>Stakes</th>
+					<th>Hours</th>
+					<th>Win/Loss</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for session in current_month_sessions %}
+					<tr>
+						<td>
+							<a href="{% url 'poker:session_detail' session_id=session.id %}">{{ session.date }}</a>
+						</td>
+						<td>{{ session.get_stakes_display }}</td>
+						<td>{{ session.hours|floatformat:2 }}</td>
+						<td>
+							{% if session.win_loss > 0 %}
+								<span class="text-success">${{ session.win_loss|floatformat:2 }}</span>
+							{% elif session.win_loss < 0 %}
+								<span class="text-danger">${{ session.win_loss|floatformat:2 }}</span>
+							{% else %}
+								${{ session.win_loss|floatformat:2 }}
+							{% endif %}
+						</td>
+					</tr>
+				{% empty %}
+					<tr>
+						<td colspan="4" class="text-center text-muted">No sessions for the selected month/year.</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="2"><strong>{{ current_month }}/{{ current_year }} Totals</strong></td>
+					<td><strong>{{ current_month_hours|floatformat:2 }}h</strong></td>
+					<td>
+						<strong>
+							<span class="{% if current_month_total > 0 %}text-success{% elif current_month_total < 0 %}text-danger{% endif %}">
+								${{ current_month_total|floatformat:2 }}
+							</span>
+							({{ current_month_hourly_rate|floatformat:2 }}/h)
+						</strong>
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+	</div>
+</div>
 
 
 

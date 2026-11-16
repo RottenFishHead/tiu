@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.http import Http404
 from .models import Post, Comment
 from django.core.paginator import Paginator, EmptyPage,\
                                   PageNotAnInteger
@@ -15,7 +16,7 @@ import calendar
 from datetime import datetime
 from datetime import datetime, timedelta
 from django.utils import timezone
-from django.db.models import Sum, F, DecimalField, Value
+from django.db.models import Q, Sum, F, DecimalField, Value
 from django.db.models.functions import Coalesce
 from decimal import Decimal
 from django.utils.text import slugify
@@ -111,7 +112,12 @@ def index(request):
 
 
 def post_list(request):
-    post_list = Post.published.all()
+    if request.user.is_authenticated:
+        post_list = Post.objects.filter(
+            Q(status=Post.Status.PUBLISHED) | Q(author=request.user)
+        )
+    else:
+        post_list = Post.published.all()
     # Pagination with 3 posts per page
     paginator = Paginator(post_list, 3)
     page_number = request.GET.get('page', 1)
@@ -128,13 +134,16 @@ def post_list(request):
                  {'posts': posts})
 
 
-def post_detail(request, year, month, day, post):
-    post = get_object_or_404(Post,
-                             status=Post.Status.PUBLISHED,
-                             slug=post,
-                             publish__year=year,
-                             publish__month=month,
-                             publish__day=day)
+def _can_view_post(request, post):
+    if post.status != Post.Status.PUBLISHED and post.author != request.user:
+        raise Http404("Post not found")
+
+
+def post_detail(request, post_id, slug):
+    post = get_object_or_404(Post, id=post_id)
+    if post.slug != slug:
+        return redirect(post.get_absolute_url())
+    _can_view_post(request, post)
     # List of active comments for this post
     comments = post.comments.filter(active=True)
     # Form for users to comment
@@ -147,14 +156,30 @@ def post_detail(request, year, month, day, post):
                    'form': form})
 
 
+def post_detail_by_date(request, year, month, day, post):
+    post_obj = get_object_or_404(Post,
+                                 slug=post,
+                                 publish__year=year,
+                                 publish__month=month,
+                                 publish__day=day)
+    _can_view_post(request, post_obj)
+    return redirect(post_obj.get_absolute_url())
+
+
 class PostListView(ListView):
     """
     Alternative post list view
     """
-    queryset = Post.published.all()
     context_object_name = 'posts'
     paginate_by = 3
     template_name = 'blog/post/list.html'
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Post.objects.filter(
+                Q(status=Post.Status.PUBLISHED) | Q(author=self.request.user)
+            )
+        return Post.published.all()
 
 
 def post_share(request, post_id):
@@ -215,10 +240,8 @@ def post_create(request):
             post.author = request.user
             post.save()
             return redirect('blog:post_detail', 
-                          year=post.publish.year,
-                          month=post.publish.month,
-                          day=post.publish.day,
-                          post=post.slug)
+                          post_id=post.pk,
+                          slug=post.slug)
     else:
         form = PostForm()
     
@@ -242,10 +265,8 @@ def post_edit(request, post_id):
         if form.is_valid():
             form.save()
             return redirect('blog:post_detail',
-                          year=post.publish.year,
-                          month=post.publish.month,
-                          day=post.publish.day,
-                          post=post.slug)
+                          post_id=post.pk,
+                          slug=post.slug)
     else:
         form = PostForm(instance=post)
     
